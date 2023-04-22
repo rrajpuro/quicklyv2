@@ -3,6 +3,8 @@ tenants:
     name: Red
     state: active
     logging: 'True'
+    logip: '10.10.10.10'
+    transit: 'True'
     vpcs:
       0801:
         name: Redone
@@ -11,9 +13,13 @@ tenants:
         pip: 172.21.10.1/24
         cip: 172.21.10.2/24
         tip: 10.0.1.1/24
+        tipremote: 10.0.1.2/24
         cdn:
-          origin: 1.1.1.1
+          state: requested
+          origin: '1.1.1.1'
           ha: 'True'
+          primaryip: '192.168.150.1/31'
+          secondaryip: '192.168.150.3/31'
       0802:
         name: Redtwo
         location: CA
@@ -21,9 +27,13 @@ tenants:
         pip: 172.21.20.1/24
         cip: 172.21.20.2/24
         tip: 10.0.2.1/24
+        tipremote: 10.0.2.2/24
         cdn:
-          origin: 1.1.1.1
+          state: requested
+          origin: '1.1.1.1'
           ha: 'True'
+          primaryip: '192.168.150.1/31'
+          secondaryip: '192.168.150.3/31'
         subnets:
           080201:
             name: Network1
