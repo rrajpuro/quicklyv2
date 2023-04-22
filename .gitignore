@@ -3,3 +3,5 @@
 # Ansible runner directories
 artifacts
 env
+*.pyc
+*_pycache_*
