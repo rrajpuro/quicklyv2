@@ -42,21 +42,37 @@ def destroyContainer(conid):
     return True
 
 def configureContainer(conid, data):
-    vpc = {conid[:4]}
+    vpc = conid[:4]
     infs = data['interfaces']
     for k,v in infs.items():
         bridge = v['subid']
         ipaddr = v['ipaddr']
         gateway = v['gateway']
         vpcint = f"{conid}-{k}"
-        subprocess.call(f'ip link add {k} type veth peer name {vpcint}', shell=True)
-        subprocess.call(f'ip link set {k} netns {conid} ', shell=True)
-        subprocess.call(f'ip link set {vpcint} netns {vpc} ', shell=True)
-        subprocess.call(f'ip netns exec {vpc} brctl addif {bridge} {vpcint} ', shell=True)
-        subprocess.call(f'ip netns exec {vpc} ip link set {vpcint} up ', shell=True)
-        subprocess.call(f'ip netns exec {conid} ip addr add {ipaddr} dev {vpcint} ', shell=True)
-        subprocess.call(f'ip netns exec {conid} ip link set {vpcint} up ', shell=True)
-        subprocess.call(f'ip netns exec {conid} ip route add default via {gateway} dev {vpcint} ', shell=True)
+        cmd = f'ip link add {k} type veth peer name {vpcint}'
+        print(f'Executing: {cmd}')
+        subprocess.call(cmd, shell=True)
+        cmd = f'ip link set {k} netns {conid}'
+        print(f'Executing: {cmd}')
+        subprocess.call(cmd, shell=True)
+        cmd = f'ip link set {vpcint} netns {vpc}'
+        print(f'Executing: {cmd}')
+        subprocess.call(cmd, shell=True)
+        cmd = f'ip netns exec {vpc} brctl addif {bridge} {vpcint}'
+        print(f'Executing: {cmd}')
+        subprocess.call(cmd, shell=True)
+        cmd =  f'ip netns exec {vpc} ip link set {vpcint} up'
+        print(f'Executing: {cmd}')
+        subprocess.call(cmd, shell=True)
+        cmd =  f'ip netns exec {conid} ip addr add {ipaddr} dev {k}'
+        print(f'Executing: {cmd}')
+        subprocess.call(cmd, shell=True)
+        cmd =  f'ip netns exec {conid} ip link set {k} up'
+        print(f'Executing: {cmd}')
+        subprocess.call(cmd, shell=True)
+        cmd =  f'ip netns exec {conid} ip route add default via {gateway} dev {k}'
+        print(f'Executing: {cmd}')
+        subprocess.call(cmd, shell=True)
         # Removing default route created by docker towards docker0 bridge
         # subprocess.call( ip netns exec cs1 ip route del default ])
     
