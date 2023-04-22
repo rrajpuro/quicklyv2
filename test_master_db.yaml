@@ -1,0 +1,43 @@
+tenants:
+  08:
+    name: Red
+    state: active
+    logging: 'True'
+    vpcs:
+      0801:
+        name: Redone
+        location: CA
+        state: active
+        pip: 172.21.10.1/24
+        cip: 172.21.10.2/24
+        tip: 10.0.1.1/24
+        cdn:
+          origin: 1.1.1.1
+          ha: 'True'
+      0802:
+        name: Redtwo
+        location: CA
+        state: active
+        pip: 172.21.20.1/24
+        cip: 172.21.20.2/24
+        tip: 10.0.2.1/24
+        cdn:
+          origin: 1.1.1.1
+          ha: 'True'
+        subnets:
+          080101:
+            name: Network1
+            state: active
+            mode: nat
+            gateway: 192.168.131.1/24
+        containers:
+          080111:
+            name: cn11
+            state: active
+            image: ubuntu
+            interfaces:
+              eth0:
+                subnet: Network1
+                subid: 080101
+                ipaddr: 192.168.131.2/24
+                gateway: 192.168.131.1

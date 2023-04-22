@@ -1,0 +1,45 @@
+---
+- name: Delete OvSwitches and related services
+  hosts: self
+  gather_facts: false
+  become: true
+  vars:
+    switches:
+      - name: tensubnet
+        swid: ffff
+        fail_mode: standalone
+
+  tasks:
+    - name: Delete OvSwitches
+      openvswitch.openvswitch.openvswitch_bridge:
+        bridge: "{{ item.swid }}"
+        state: absent
+      loop: "{{ switches }}"
+      tags: del-ovs
+
+    - name: stop dnsmasq service
+      shell: "kill $(ps aux | grep '{{ item.name }}_dnsmasq.conf'  | awk '{print $2}')"
+      when:
+        - item.mode in ['nat','route']
+      loop: "{{ switch }}"
+      failed_when: false
+      tags: del-dnsmasq
+
+    - name: Remove switch related files
+      command: rm -rf /var/quickly/{{ item }}*
+      loop:
+        "{{ switch }}"
+
+    - name: Delete rule from NAT POSTROUTING iptable
+      command:
+        cmd: iptables -t nat -D POSTROUTING {{ item.rulenum }}
+      when: item.rulenum is defined
+      loop: "{{ switch }}"
+      ignore_errors: true
+      tags: del-nat
+      
+    - name: Perform manual checks
+      debug:
+        msg: |
+          Ensure to manually check the respective dnsmasq processes using 'ps aux' command
+          Ensure to manually check the rule in deleted from POSTROUTING chain of nat iptable

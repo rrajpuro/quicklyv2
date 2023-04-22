@@ -1,0 +1,52 @@
+vm:
+  - name: myvm1
+    tenant: cus1
+    memory: 2048
+    vcpu: 2
+    capacity: 12
+    image_path: /var/quickly/base/jammy-server-cloudimg-amd64-disk-kvm.img
+    interface:
+      - name: eth0
+        bridge: tensubnet
+        mac: '52:54:00:12:34:56'
+        dhcp: true
+      - name: eth1
+        bridge: tensubnet
+        mac: '52:54:00:12:34:57'
+        dhcp: true
+    install:
+      - name: wireshark
+      - name: iperf3
+
+
+switch:
+  - name: sw1
+    network: internet
+    mode: nat
+    ipv4addr: '192.168.131.1/24'
+    dhcp: 
+      start: 192.168.131.2
+      end: 192.168.131.254
+      mask: 255.255.255.0
+
+  - name: sw2
+    network: l2
+    mode: bridge
+
+  - name: sw3
+    network: l3
+    mode: route
+    ipv4addr: '192.168.133.1/24'
+    dhcp:
+      start: 192.168.133.2
+      end: 192.168.133.254
+      mask: 255.255.255.0
+
+  - name: sw4
+    network: other
+    mode: route
+    ipv4addr: '192.168.134.1/24'
+    dhcp:
+      start: 192.168.134.2
+      end: 192.168.134.254
+      mask: 255.255.255.0

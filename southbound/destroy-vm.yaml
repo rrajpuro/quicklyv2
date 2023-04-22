@@ -1,0 +1,30 @@
+---
+- name: Destroy virtual machines
+  hosts: self
+  gather_facts: false
+  become: true
+  vars:
+    vm:
+      - name: myvm1
+        tenant: cus1
+
+  tasks:
+
+    - name: stop vm
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        state: destroyed
+      loop:
+        "{{ vm }}"
+
+    - name: undefine vm
+      community.libvirt.virt:
+        command: undefine
+        guest: "{{ item.name }}"
+      loop:
+        "{{ vm }}"
+
+    - name: Remove vm related files
+      command: rm -rf /var/quickly/tenant/{{ item.tenant }}/{{ item.name }}
+      loop:
+        "{{ vm }}"

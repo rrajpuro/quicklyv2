@@ -1,0 +1,16 @@
+---
+# - debug:
+#     msg: "Outer index: {{ outer_index }}, Inner index: {{ inner_index }}, Hobby: {{ item.name }}, Skill: {{ item.skill }}"
+#   loop: "{{ outer_item.hobbies }}"
+#   loop_control:
+#     index_var: inner_index
+
+- name: Add key-value pair
+  ansible.utils.update_fact:
+    updates:
+    - path: "outer_list[{{outer_index}}].hobbies[{{inner_index}}].mac"
+      value: "{{ '52:54:00' | community.general.random_mac(seed=(item.name)) }}"
+  loop: "{{ outer_item.hobbies }}"
+  loop_control:
+    index_var: inner_index
+  register: lis

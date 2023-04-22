@@ -1,0 +1,65 @@
+---
+- name: Create subnets and the dhcp and nat rules
+  hosts: self
+  gather_facts: false
+  become: true
+  # vars:
+  #   subid: '080101' # vpcid+ff
+  #   name: Network1    #---------
+  #   state: requested  # /processing/active/terminate
+  #   mode: nat #nat/route ------------
+  #   gateway: '192.168.131.1/24' #---------
+  #   dhcp: #-------
+  #     start: 192.168.131.2
+  #     end: 192.168.131.254
+  #     mask: 255.255.255.0
+
+  tasks:
+
+    - name: Create OvSwitches
+      openvswitch.openvswitch.openvswitch_bridge:
+        bridge: "{{ subid }}"
+        state: present
+        fail_mode: standalone
+
+    # Namespace identifier used here is vpcid which is subid[:4]
+    - name: Create veth pair and add to namespace
+      shell:
+        cmd: |
+          ip link add {{ subid }}-br type veth peer name {{ subid }}-ns 
+          ip link set {{ subid }}-ns netns {{ subid[:4] }}
+          ip netns exec {{ subid[:4] }} ip addr add {{ gateway }} dev {{ subid }}-ns 
+          ip netns exec {{ subid[:4] }} ip link set {{ subid }}-ns up 
+          ovs-vsctl add-port {{ subid }} {{ subid }}-br
+          ip link set {{ subid }}-br up 
+      register: response
+
+    # - name: Add veth pair to OVS switch
+    #   openvswitch.openvswitch.openvswitch_port:
+    #     bridge: "{{ subid }}"
+    #     port: "{{ subid }}-br"
+    #     state: present
+    
+    - name: Create subnet specific directory
+      file:
+        path: '/var/quickly/tenant/{{ subid[:2] }}/vpc-{{ subid[:4]}}/sub-{{ subid }}'
+        state: directory
+      
+    - name: Create dnsmasq config file
+      ansible.builtin.template:
+        src: ./dnsmasq.conf.j2
+        dest: "/var/quickly/tenant/{{ subid[:2] }}/vpc-{{ subid[:4]}}/sub-{{ subid }}/{{ subid }}-dnsmasq.conf"
+      when:
+        - dhcp is defined
+
+    - name: Start DHCP service using dnsmasq inside the namespace using vpcid
+      command:
+        cmd: "ip netns exec {{ subid[:4]}} /usr/sbin/dnsmasq --conf-file=/var/quickly/tenant/{{ subid[:2] }}/vpc-{{ subid[0:4]}}/sub-{{ subid }}/{{ subid }}-dnsmasq.conf"
+      when: 
+        - dhcp is defined
+
+    - name: Check and create if the ip table rule if it doesn't exist
+      command: "python3 ./create-iptable-rules.py '{{ subid }}' '{{ gateway }}'"
+      register: response
+      when:
+        - mode in ['nat']

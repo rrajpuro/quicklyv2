@@ -1,0 +1,43 @@
+<domain type='kvm'>
+  <name>{{ name }}</name>
+  <memory unit='MiB'>{{ memory }}</memory>
+  <vcpu placement='static'>{{ vcpu }}</vcpu>
+  <os>
+    <type arch='x86_64'>hvm</type>
+    <boot dev='cdrom'/>
+  </os>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='{{ image_path }}' index='1'/>
+      <backingStore/>
+      <target dev='hdb' bus='ide'/>
+      <capacity unit='GB'>{{ capacity }}</capacity>
+      <readonly/>
+      <alias name='ide0-0-1'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='1'/>
+    </disk>
+    {% if interfaces is defined %}
+    {% for inf in interfaces %}
+    <interface type='bridge'>
+      <source bridge='{{ inf.bridge }}'/>
+      <virtualport type='openvswitch'/>
+      <model type='virtio'/>
+    </interface>
+    {% endfor %}
+    {% endif %}
+    <serial type='pty'>
+      <source path='/dev/pts/7'/>
+      <target type='isa-serial' port='0'>
+        <model name='isa-serial'/>
+      </target>
+      <alias name='serial0'/>
+    </serial>
+    <console type='pty' tty='/dev/pts/7'>
+      <source path='/dev/pts/7'/>
+      <target type='serial' port='0'/>
+      <alias name='serial0'/>
+    </console>
+  </devices>
+</domain>

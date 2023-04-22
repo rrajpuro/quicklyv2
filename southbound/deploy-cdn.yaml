@@ -1,0 +1,36 @@
+---
+- name: Deploy CDN pop locations and forward ports on VPC
+  hosts: self
+  gather_facts: false
+  become: true
+  vars:
+    cdns:
+    # Multiple cdn instance limited by port collision on the same VPC
+    # A single VPC can host a single origin or pop location on the same port numbers
+    - instance: ffff  # id+ff
+      origin: # Origin server
+        vmid:
+        vmname:
+        vmport: # port on the VM where service is running
+        vpcport:  # port to be exposed on the VPC / public IP
+      pop:
+        - vmid:
+          vmname:
+          vmport:
+          vpcport:
+        - vmid:
+          vmname:
+          vmport:
+          vpcport:
+        - vmid:
+          vmname:
+          vmport:
+          vpcport:
+          
+
+  tasks:
+    - name: Creates network namespace
+      community.general.ip_netns:
+        name: "{{ item.vpcid }}"
+        state: present
+      loop: "{{ vpcs }}"

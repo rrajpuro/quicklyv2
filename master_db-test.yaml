@@ -1,0 +1,61 @@
+tenants:
+- id: 08
+  name: ABC
+  state: active
+  vpcs:
+  - vpcid: 0801
+    name: Red
+    location: CA
+    state: active
+    pip: 172.16.10.1/24
+    cip: 172.16.10.2/24
+    subnets:
+    - subid: 080101
+      name: Network1
+      state: active
+      mode: nat
+      gateway: 192.168.131.1/24
+      dhcp:
+        start: 192.168.131.2
+        end: 192.168.131.254
+        mask: 255.255.255.0
+    vms:
+    - vmid: 080122
+      name: vm22
+      state: active
+      memory: 2048
+      vcpu: 2
+      capacity: 12
+      image_path: /var/quickly/base/jammy-server-cloudimg-amd64-disk-kvm.img
+      interfaces:
+      - name: eth0
+        subnet: Network1
+        subid: 080101
+        mac: '52:54:00:12:34:01'
+        ipaddr: 192.168.131.2/24
+        gateway: 192.168.131.1
+      - name: eth1
+        subnet: Network1
+        subid: 080101
+        mac: '52:54:00:12:34:02'
+        dhcp: true
+  cdns:
+  - instance: ffff
+    origin:
+      vmid: null
+      vmname: null
+      vmport: null
+      vpcport: null
+    pop:
+    - vmid: null
+      vmname: null
+      vmport: null
+      vpcport: null
+    - vmid: null
+      vmname: null
+      vmport: null
+      vpcport: null
+    - vmid: null
+      vmname: null
+      vmport: null
+      vpcport: null

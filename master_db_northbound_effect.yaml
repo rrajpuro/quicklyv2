@@ -1,0 +1,108 @@
+tenants:
+- id: ff
+  name: ABC
+  state: requested/onboarding/active
+  vms:
+  - capacity: 12
+    image_path: ./ubuntu_linux
+    interfaces:
+    - dhcp: true
+      name: eth0
+      subid: a1a1fe
+      subnet: net1
+    - dhcp: false
+      ipaddr: 192.168.131.2/24
+      name: eth1
+      subid: a1a1ff
+      subnet: net2
+    memory: 2048
+    name: vm11
+    packages:
+    - name: wireshark
+    - name: iperf3
+    state: requested/provisioning/running/stopped
+    vcpu: 2
+    vmid: id+ff
+  vpcs:
+  - cip: 172.16.10.2/24
+    location: Raleigh
+    name: red
+    pip: 172.16.10.1/24
+    state: requested/provisioning/running/stopped
+    subnets:
+    - dhcp:
+        end: 192.168.131.254
+        mask: 255.255.255.0
+        start: 192.168.131.2
+      gateway: 192.168.131.1/24
+      mode: nat
+      name: net1
+      subid: a1a1fe
+    vpcid: id+ff
+- id: '12'
+  name: Tessssla
+  state: requested
+  vms:
+  - capacity: 152
+    image_path: ''
+    interfaces:
+    - dhcp: true
+      ipaddr: ''
+      name: e5th0
+      subnet: n5et1
+    - dhcp: false
+      ipaddr: 192.168.331.2/24
+      name: eth156
+      subnet: ne66t2
+    memory: 208
+    name: vsmsssssssss44
+    state: requested
+    vcpu: 6
+    vmid: '1228'
+  - capacity: 152
+    image_path: ''
+    interfaces:
+    - dhcp: true
+      ipaddr: ''
+      name: e5th0
+      subnet: n5et1
+    - dhcp: false
+      ipaddr: 192.168.331.2/24
+      name: eth156
+      subnet: ne66t2
+    memory: 208
+    name: addVMonly
+    state: requested
+    vcpu: 6
+    vmid: '1536'
+  vpcs:
+  - cip: ''
+    location: Masdrid
+    name: VPCs34one
+    pip: ''
+    state: requested
+    subnets:
+    - dhcp:
+        end: 192.168.131.254
+        mask: 255.255.255.0
+        start: 192.168.131.2
+      gateway: 192.168.131.1/24
+      mode: nast
+      name: nesst1
+      subid: '126049'
+    vpcid: '1260'
+  - cip: ''
+    location: Masdrid
+    name: VPCs34one
+    pip: ''
+    state: requested
+    subnets:
+    - dhcp:
+        end: 192.168.131.254
+        mask: 255.255.255.0
+        start: 192.168.131.2
+      gateway: 192.168.131.1/24
+      mode: nast
+      name: nesst1
+      subid: '15595'
+    vpcid: '155'

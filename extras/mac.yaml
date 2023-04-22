@@ -1,0 +1,32 @@
+- hosts: localhost
+  gather_facts: no
+  vars:
+    vm:
+      vm1:
+        name: vm1
+        interface:
+          - name: eth0
+      vm2:
+        name: vm2
+        interface:
+          - name: eth0
+          - name: eth1
+
+  tasks:
+    - debug: 
+        msg: "{{ item }}"
+      loop: "{{ vm | dict2items | subelements('value') }}"
+      loop_control:
+        index_var: idx
+
+    # - name: Add key-value pair
+    #   ansible.utils.update_fact:
+    #     updates:
+    #     - path: vm.idx.interface.mac
+    #       value: "{{ '52:54:00' | community.general.random_mac(seed=(item.0.name+item.1.name)) }}"
+    #   loop: "{{ vm | subelements('interface') }}"
+    #   loop_control:
+    #     index_var: idx
+
+    # - debug: 
+    #     msg: "{{vm}}"

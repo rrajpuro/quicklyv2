@@ -1,0 +1,16 @@
+#cloud-config
+hostname: vm01
+manage_etc_hosts: true
+users:
+  - name: vmadm
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    home: /home/vmadm
+    shell: /bin/bash
+    lock_passwd: false
+ssh_pwauth: true
+disable_root: false
+chpasswd:
+  list: |
+    vmadm:vmadm
+  expire: false

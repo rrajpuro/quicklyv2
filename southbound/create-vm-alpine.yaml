@@ -1,0 +1,31 @@
+---
+- name: Create new Alpine linux virtual machines
+  hosts: self
+  gather_facts: false
+  become: true
+  vars:
+    vm:
+      - name: myvm1
+        memory: 2048
+        vcpu: 2
+        capacity: 12
+        image_path: /home/rahul/lxn/alpine-virt-3.8.5-x86_64.iso
+        network:
+          - name: internet
+            bridge: cus1
+
+  tasks:
+    - name: Define vm from xml and set autostart
+      community.libvirt.virt:
+        command: define
+        xml: "{{ lookup('template', 'vm-install-alpine.xml.j2') }}"
+        autostart: true
+      loop:
+        "{{ vm }}"
+
+    - name: start vm
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        state: running
+      loop:
+        "{{ vm }}"

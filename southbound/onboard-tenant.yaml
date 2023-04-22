@@ -1,0 +1,11 @@
+---
+- name: Initialise Tenant specific directories
+  hosts: self
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Create Tenant specific directory
+      file:
+        path: '/var/quickly/tenant/{{ id }}'
+        state: directory

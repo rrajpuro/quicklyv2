@@ -1,0 +1,70 @@
+ 1738  ip link
+ 1739  ip route
+ 1740  ip netns list
+ 1742  ls -l /proc/$$
+ 1743  echo $$
+ 1747  pstree
+ 1748  ps aux
+ 1749  ls -l /proc/$$/net
+ 1758  ls -l /proc/$$/ns/
+ 1759  ovs show
+ 1762  ip netns
+ 1764  sudo ip netns add red
+ 1768  sudo ip link add veth-red type veth peer name eth0-red
+ 1773  sudo ip netns exec red ip link
+ 1778  sudo ip netns exec red bash
+ 1779  ip netns del red
+
+
+sudo dnsmasq --conf-file=/home/rahul/lxn/hw3/libvirt-dnsmasq/custom.conf
+
+sudo kill $(ps aux | grep 'sw4_dnsmasq'  | awk '{print $2}')
+
+virsh  domiflist myvm2
+udhcp -i eth0
+
+sudo /etc/init.d/openvswitch-switch restart
+
+iptables -t nat -A POSTROUTING -s 192.168.131.0/24 ! -d 192.168.131.0/24 -j MASQUERADE
+
+sudo iptables -L -t nat -n -v --line-numbers
+sudo iptables -t nat -D POSTROUTING <line-number>/<rule>
+
+ip netns exec 1122 /usr/sbin/dnsmasq --conf-file=/var/quickly/tenant/
+
+sudo apt-get install libguestfs-tools
+
+virsh destroy 1155
+sudo virt-copy-in -d 1155 /home/rahul/quickly/webapp /home/vmadm 
+virsh start 1155
+
+# Command to print a able of Interface IP and MAC
+# does not capture mac: ip -o addr show | awk -F': | +' '{print $2,$4,$NF}'
+ip -o addr | grep -o '^.*inet .*\\'
+ip -o link | gawk 'match($0, /(.*)@.*link\/ether (.{17})/, ary) {print ary[1]"\t"ary[2]}'
+#inside vm
+ip -o link | gawk 'match($0, /(.*):.*link\/ether (.{17})/, ary) {print ary[1]"\t"ary[2]}'
+
+ip -o link show dev eth0 | awk '{print $1"\t"$2"\t"$(NF-2)}'
+ip -o addr show dev eth0 | grep -o '.*brd'
+
+# alias for the above command with proper escape chars
+alias showmacether=$'ip -o link | gawk \'match($0, /(.*)@.*link\/ether (.{17})/, ary) {print ary[1]"\t"ary[2]}\''
+
+
+# Kill all dnsmasq processes for quickly
+sudo kill $(ps aux | grep 'quickly.*dnsmasq\.conf'  | awk '{print $2}')
+
+
+iptables -t nat -A POSTROUTING -s 172.16.10.0/24 ! -d 172.16.10.0/24 -j MASQUERADE
+iptables -t nat -A POSTROUTING -s 172.16.20.0/24 ! -d 172.16.20.0/24 -j MASQUERADE
+
+iptables -A INTERNET -p tcp --dport ssh -s 172.16.10.0/24 -j ACCEPT
+iptables -A INTERNET -p icmp -s 172.16.10.0/24 -j ACCEPT
+iptables -A INTERNET -j DROP
+
+iptables -I INTERNET 3 -p icmp -s 172.16.20.0/24 -j ACCEPT
+
+iptables -A FORWARD -p tcp --dport ssh -s 192.168.140.0/24 -j ACCEPT
+
+iptables -A FORWARD -p tcp --dport ssh -s 192.168.150.0/24 -j ACCEPT

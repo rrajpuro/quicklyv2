@@ -1,0 +1,26 @@
+- name: Example playbook
+  hosts: localhost
+  vars:
+    outer_list:
+      - name: John
+        hobbies:
+          - name: Tennis
+            skill: Intermediate
+          - name: Chess
+            skill: Advanced
+      - name: Jane
+        hobbies:
+          - name: Swimming
+            skill: Beginner
+          - name: Painting
+            skill: Intermediate
+  tasks:
+    - name: Print indices
+      include_tasks: debug.yaml
+      loop: "{{ outer_list }}"
+      loop_control:
+        index_var: outer_index
+        loop_var: outer_item
+
+    - debug:
+        msg: "{{lis}}"

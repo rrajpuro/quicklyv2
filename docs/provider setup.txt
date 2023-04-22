@@ -1,0 +1,33 @@
+# Setup
+ 1049 alias ovs='sudo ovs-vsctl'
+
+ 2047  ovs add-br CA
+ 2048  ovs add-br NY
+ 2049  ovs add-br FL
+ 2050  ovs add-br TX
+
+ 2060  sudo iptables -t nat -A POSTROUTING -s 172.16.1.0/24 ! -d 172.16.1.0/24 -j MASQUERADE
+ 2061  sudo iptables -t nat -A POSTROUTING -s 172.16.2.0/24 ! -d 172.16.2.0/24 -j MASQUERADE
+ 2062  sudo iptables -t nat -A POSTROUTING -s 172.16.3.0/24 ! -d 172.16.3.0/24 -j MASQUERADE
+ 2063  sudo iptables -t nat -A POSTROUTING -s 172.16.4.0/24 ! -d 172.16.4.0/24 -j MASQUERADE
+
+ 2068  sudo ip addr add 172.16.1.1/24 dev CA
+ 2069  sudo ip addr add 172.16.2.1/24 dev NY
+ 2070  sudo ip addr add 172.16.3.1/24 dev FL
+ 2071  sudo ip addr add 172.16.4.1/24 dev TX
+
+ 2072  sudo ip link set CA up
+ 2073  sudo ip link set NY up
+ 2074  sudo ip link set FL up
+ 2075  sudo ip link set TX up
+
+# Breakdown
+ovs del-br CA
+ovs del-br NY
+ovs del-br FL
+ovs del-br TX
+
+sudo iptables -t nat -D POSTROUTING -s 172.16.1.0/24 ! -d 172.16.1.0/24 -j MASQUERADE
+sudo iptables -t nat -D POSTROUTING -s 172.16.2.0/24 ! -d 172.16.2.0/24 -j MASQUERADE
+sudo iptables -t nat -D POSTROUTING -s 172.16.3.0/24 ! -d 172.16.3.0/24 -j MASQUERADE
+sudo iptables -t nat -D POSTROUTING -s 172.16.4.0/24 ! -d 172.16.4.0/24 -j MASQUERADE

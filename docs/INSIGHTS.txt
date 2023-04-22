@@ -1,0 +1,6 @@
+- All IDs have to be strings
+- When a new instance is found state has to be 'requested'. We will handle deletion (terminate) in next milestone
+- requested/processing/active/terminate are all the states
+- create a random MAC address for each interface and store it in database
+- When customer gives a VPC name create VPC if doesnt exist or create a subnet and VM for that VPC
+- Add default route in namespace command regex issue in playbook

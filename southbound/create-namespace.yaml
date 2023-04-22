@@ -1,0 +1,36 @@
+---
+- name: Create namespace
+  hosts: self
+  gather_facts: false
+  become: true
+  # vars:
+  #     vpcid: 'red'
+  #     name: red
+  #     pip: '172.16.10.1/24'
+  #     cip: '172.16.10.2/24'
+
+  tasks:
+    - name: Creates network namespace
+      community.general.ip_netns:
+        name: "{{ vpcid }}"
+        state: present
+    
+    - name: Create and configure veth pair and add to namespace
+      shell:
+        cmd: |
+          ip link add veth-{{ vpcid }} type veth peer name eth0 
+          ip addr add {{ pip }} dev veth-{{ vpcid }}
+          ip link set veth-{{ vpcid }} up 
+          ip link set eth0 netns {{ vpcid }}
+          ip netns exec {{ vpcid }} ip addr add {{ cip }} dev eth0 
+          ip netns exec {{ vpcid }} ip link set eth0 up 
+
+    - name: Configure default route for the namespace
+      command:
+        cmd: ip netns exec {{ vpcid }} ip route add default via {{ pip | regex_search('([0-9]{1,3}\.){3}[0-9]{1,3}') }}
+      tags: r
+
+    - name: Create vpc specific directory
+      file:
+        path: '/var/quickly/tenant/{{ vpcid[:-2] }}/vpc-{{ vpcid }}'
+        state: directory

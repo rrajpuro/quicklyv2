@@ -1,0 +1,80 @@
+---
+- name: Create new Alpine linux virtual machines
+  hosts: self
+  gather_facts: false
+  become: true
+  vars:
+    vm:
+      - name: myvm1
+        interface:
+          - name: eth0
+            dhcp: true
+        install:
+          - name: wireshark
+          - name: iperf3
+
+  tasks:
+
+    - name: ip link set up for interfaces defined in vars
+      expect:
+        command: "virsh console {{ item.0.name }}"
+        responses:
+          'Escape character is': ''
+          'localhost login:': 'root'
+          'localhost:~#':
+            - 'ip link set {{ item.1.name }} up'
+            - "\u001d"
+      register: response
+      loop: "{{ vm|subelements('interface') }}"
+      tags: con
+
+    - name: Configure interface to get IP address using DHCP
+      expect:
+        command: "virsh console {{ item.0.name }}"
+        responses:
+          'Escape character is': ''
+          'localhost:~#':
+            - 'udhcpc -i {{ item.1.name }}'
+            - "\u001d"
+      register: response
+      ignore_errors: true
+      when: item.1.dhcp is true
+      loop: "{{ vm|subelements('interface') }}"
+      tags: con
+
+    - debug:
+        msg: "{{ item.stdout_lines }}"
+      when: item.stdout_lines is defined
+      loop: "{{ response.results }}"
+
+    - name: Update package repositories
+      expect:
+        command: "virsh console {{ item.name }}"
+        responses:
+          'Escape character is': ''
+          'localhost:~#': 
+            - "echo 'http://dl-cdn.alpinelinux.org/alpine/v3.14/main' >> /etc/apk/repositories"
+            - "echo 'http://dl-cdn.alpinelinux.org/alpine/v3.14/community' >> /etc/apk/repositories"
+            - 'apk update'
+            - "\u001d"
+      ignore_errors: true
+      loop: "{{ vm }}"  
+
+    - name: Install 
+      expect:
+        command: "virsh console {{ item.0.name }}"
+        responses:
+          'Escape character is': ''
+          'localhost:~#':
+            - 'apk add {{ item.1.name }}'
+            - "\u001d"
+      register: response
+      ignore_errors: true
+      loop: "{{ vm|subelements('install') }}"
+      tags: install
+
+    - debug:
+        msg: "{{ item.stdout_lines }}"
+      when: item.stdout_lines is defined
+      loop: "{{ response.results }}"
+      tags: install

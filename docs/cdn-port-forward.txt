@@ -1,0 +1,19 @@
+# Define variables
+export IP='10.1.1.1'
+export PORT='8080'
+
+# Create a custom chain
+sudo iptables --table nat --new QUICKLY
+
+# Redirect traffic from PREROUTE and OUTPUT (optional) to QUICKLY chain
+sudo iptables -t nat -A PREROUTING -m addrtype --dst-type LOCAL -j QUICKLY
+sudo iptables -t nat -A OUTPUT -m addrtype --dst-type LOCAL -j QUICKLY
+
+# Add port forward rule in the custom chain
+sudo iptables -t nat -A QUICKLY -p tcp -m tcp --dport $PORT -j DNAT --to-destination $IP:$PORT
+
+# sudo iptables -t nat -A QUICKLY -p tcp -m tcp --dport 8081 -j DNAT --to-destination 10.0.0.21:8081
+
+
+# Option to match destination IP to be more specific in the future
+# sudo iptables -t nat -A OUTPUT -d 192.168.0.100/32 -p tcp -m tcp --dport 8080 -j DNAT --to-destination 10.0.0.11:8080

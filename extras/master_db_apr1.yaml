@@ -1,0 +1,50 @@
+#Tenant is a customer
+tenants:
+  - id: ff
+    name: ABC  #------
+    state: requested/onboarding/active
+    # Each namespace represents one VPC
+    vpcs:
+      - vpcid: id+ff 
+        name: red   #-----------
+        location: Raleigh #------
+        state: requested/provisioning/running/stopped
+        pip: '172.16.10.1/24' #provider ip
+        cip: '172.16.10.2/24' #customer vpc ip
+        # Each OVS bridge represents one subnet
+        subnets:
+          - subid: a1a1fe # vpcid+ff
+            name: net1    #---------
+            switch: swid  # id+ff ---------
+            mode: nat #nat/route ------------
+            gateway: '192.168.131.1/24' #---------
+            dhcp: #-------
+              start: 192.168.131.2
+              end: 192.168.131.254
+              mask: 255.255.255.0
+    switches:  
+      - swid: id+ff
+        name: ovs1  #-------
+        fail_mode: standalone 
+        state: requested/provisioning/running/stopped
+    # VMs
+    vms:
+      - vmid: id+ff
+        name: vm11 #---------
+        state: requested/provisioning/running/stopped
+        memory: 2048 #-------
+        vcpu: 2 #----------
+        capacity: 12
+        os: image_path     
+        interfaces:
+          - name: eth0 #------
+            switch: sw1 #-------
+            dhcp: true
+          - name: eth1  
+            switch: sw2
+            dhcp: false
+            ipaddr: '192.168.131.2/24'  #ipaddr 
+            gateway: '192.168.131.1'
+        packages:
+          - name: wireshark
+          - name: iperf3

@@ -1,0 +1,12 @@
+CONTAINER_NAME='test2'
+CONTAINER_PID=$(docker inspect --format '{{.State.Pid}}' $CONTAINER_NAME)
+sudo ln -sf /proc/$CONTAINER_PID/ns/net /var/run/netns/$CONTAINER_NAME
+
+
+docker run -it -d --name test1 --network none ubuntu bash
+docker run -it -d --name test2 --network none ubuntu bash
+
+#listing all symlinks
+find . -type l -ls
+#To only process the current directory
+find . -maxdepth 1 -type l -ls

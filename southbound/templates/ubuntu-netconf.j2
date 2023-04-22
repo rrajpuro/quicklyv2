@@ -1,0 +1,21 @@
+network:
+  version: 2
+  ethernets:
+{% for inf in interfaces %}
+    {{ inf.name }}:
+{% if inf.dhcp is defined %}
+      dhcp4: true
+{% endif %}
+{% if inf.ipaddr is defined %}
+      addresses: 
+      - {{ inf.ipaddr }}
+{% endif %}
+{% if inf.gateway is defined %}
+      routes:
+        - to: default
+          via: {{ inf.gateway }}
+{% endif %}
+      match:
+        macaddress: {{ inf.mac }}
+      set-name: {{ inf.name }}
+{% endfor %}

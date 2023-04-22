@@ -1,0 +1,69 @@
+---
+- name: Deploy CDN pop locations and forward ports on VPC
+  hosts: self
+  gather_facts: false
+  become: true
+  vars:
+    cdns:
+    # Multiple cdn instance limited by port collision on the same VPC
+    # A single VPC can host a single origin or pop location on the same port numbers
+    - instance: ffff  # id+ff
+      origin: # Origin server
+        vmid: 1166
+        vmname: vm11
+        vmport: 3000 # port on the VM where service is running
+        vpcport: 80 # port to be exposed on the VPC / public IP
+      pop:
+        - vmid:
+          vmname:
+          vmport:
+          vpcport:
+        - vmid:
+          vmname:
+          vmport:
+          vpcport:
+        - vmid:
+          vmname:
+          vmport:
+          vpcport:
+          
+
+  tasks:
+    - name: Stop the VM
+      community.libvirt.virt:
+        name: "{{ item.origin.vmid }}"
+        state: destroyed
+      loop: "{{ cdns }}"
+
+
+    - name: Pause for 5 seconds to stop VM
+      ansible.builtin.pause:
+        seconds: 5
+
+    - name: Copy webapp folder into the VM
+      command:
+        cmd: "virt-copy-in -d {{ item.origin.vmid }} ../webapp /home/vmadm"
+      loop: "{{ cdns }}"
+
+    - name: Pause for 10 seconds to copy files
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Start the VM
+      community.libvirt.virt:
+        name: "{{ item.origin.vmid }}"
+        state: running
+      loop: "{{ cdns }}"
+
+    - name: Pause for 30 seconds to start VM
+      ansible.builtin.pause:
+        seconds: 30
+    
+    - name: Start webapp on vmport
+      command: "python3 ./deploy-webapp.py '{{ cdns | to_json }}'"
+      register: res
+      tags: test
+    
+    - debug:
+        var: res
+      tags: test

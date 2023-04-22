@@ -1,0 +1,21 @@
+---
+- name: Create OvSwitches
+  hosts: self
+  gather_facts: false
+  become: true
+  vars:
+    switches:
+      # - swid: id+ff
+      - swid: '1144'
+        name: ovs1
+        fail_mode: standalone
+
+  tasks:
+    - name: Create OvSwitches
+      openvswitch.openvswitch.openvswitch_bridge:
+        bridge: "{{ item.swid }}"
+        state: present
+        fail_mode: "{{ item.fail_mode }}"
+      loop:
+        "{{ switches }}"
+

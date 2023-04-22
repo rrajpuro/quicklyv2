@@ -1,0 +1,137 @@
+#Tenant is a customer
+tenants:
+  - id: '08'
+    name: ABC  #------
+    state: requested  # requested/processing/active/terminate
+    # Each namespace represents one VPC
+    vpcs:
+      - vpcid: '0801'
+        name: Red   #-----------
+        location: CA # CA/NY/FL/TX #------
+        state: requested  # requested/processing/active/terminate
+        pip: '172.16.10.1/24' # provider ip
+        cip: '172.16.10.2/24' #customer vpc ip
+        #Each OVS bridge represents one subnet
+        subnets:
+          - subid: '080101' # vpcid+ff
+            name: Network1    #---------
+            state: requested  # requested/processing/active/terminate
+            mode: nat #nat/route ------------
+            gateway: '192.168.131.1/24' #---------
+            dhcp: #-------
+              start: 192.168.131.2
+              end: 192.168.131.254
+              mask: 255.255.255.0
+
+          - subid: '080102' # vpcid+ff
+            name: Network2    #---------
+            state: requested  # requested/processing/active/terminate
+            mode: nat #nat/route ------------
+            gateway: '192.168.140.1/24' #---------
+            dhcp: #-------
+              start: 192.168.140.2
+              end: 192.168.140.254
+              mask: 255.255.255.0
+
+        vms:
+          - vmid: '080111'
+            name: vm11 #--------- hostname
+            state: requested  # requested/processing/active/terminate
+            memory: 2048 #-------
+            vcpu: 2 #----------
+            capacity: 12
+            image_path: /var/quickly/base/jammy-server-cloudimg-amd64-disk-kvm.img
+            interfaces:
+              # Do not give duplicate default gateways under all interfaces.
+              # Limitation of netplan to give global default routes
+              - name: eth0 #------
+                subnet: Network1 #------
+                subid: '080101'
+                mac: '52:54:00:12:34:01'
+                ipaddr: '192.168.131.2/24'  #ipaddr 
+                gateway: '192.168.131.1'
+          
+          - vmid: '080122'
+            name: vm22 #--------- hostname
+            state: requested  # requested/processing/active/terminate
+            memory: 2048 #-------
+            vcpu: 2 #----------
+            capacity: 12
+            image_path: /var/quickly/base/jammy-server-cloudimg-amd64-disk-kvm.img
+            interfaces:
+              # Do not give duplicate default gateways under all interfaces.
+              # Limitation of netplan to give global default routes
+              - name: eth0 #------
+                subnet: Network2 #------
+                subid: '080102'
+                mac: '52:54:00:12:34:01'
+                ipaddr: '192.168.140.2/24'  #ipaddr 
+                gateway: '192.168.140.1'
+
+  - id: '09'
+    name: ABC  #------
+    state: requested  # requested/processing/active/terminate
+    # Each namespace represents one VPC
+    vpcs:
+      - vpcid: '0901'
+        name: Red   #-----------
+        location: CA # CA/NY/FL/TX #------
+        state: requested  # requested/processing/active/terminate
+        pip: '172.16.20.1/24' # provider ip
+        cip: '172.16.20.2/24' #customer vpc ip
+        #Each OVS bridge represents one subnet
+        subnets:
+          - subid: '090101' # vpcid+ff
+            name: Network1    #---------
+            state: requested  # requested/processing/active/terminate
+            mode: nat #nat/route ------------
+            gateway: '192.168.131.1/24' #---------
+            dhcp: #-------
+              start: 192.168.131.2
+              end: 192.168.131.254
+              mask: 255.255.255.0
+
+          - subid: '090102' # vpcid+ff
+            name: Network2    #---------
+            state: requested  # requested/processing/active/terminate
+            mode: nat #nat/route ------------
+            gateway: '192.168.150.1/24' #---------
+            dhcp: #-------
+              start: 192.168.150.2
+              end: 192.168.150.254
+              mask: 255.255.255.0
+
+        vms:
+          - vmid: '090111'
+            name: vm11 #--------- hostname
+            state: requested  # requested/processing/active/terminate
+            memory: 2048 #-------
+            vcpu: 2 #----------
+            capacity: 12
+            image_path: /var/quickly/base/jammy-server-cloudimg-amd64-disk-kvm.img
+            interfaces:
+              # Do not give duplicate default gateways under all interfaces.
+              # Limitation of netplan to give global default routes
+              - name: eth0 #------
+                subnet: Network1 #------
+                subid: '090101'
+                mac: '52:54:00:12:34:01'
+                ipaddr: '192.168.131.2/24'  #ipaddr 
+                gateway: '192.168.131.1'
+          
+          - vmid: '090122'
+            name: vm22 #--------- hostname
+            state: requested  # requested/processing/active/terminate
+            memory: 2048 #-------
+            vcpu: 2 #----------
+            capacity: 12
+            image_path: /var/quickly/base/jammy-server-cloudimg-amd64-disk-kvm.img
+            interfaces:
+              # Do not give duplicate default gateways under all interfaces.
+              # Limitation of netplan to give global default routes
+              - name: eth0 #------
+                subnet: Network2 #------
+                subid: '090102'
+                mac: '52:54:00:12:34:01'
+                ipaddr: '192.168.150.2/24'  #ipaddr 
+                gateway: '192.168.150.1'

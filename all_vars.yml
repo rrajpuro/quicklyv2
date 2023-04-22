@@ -1,0 +1,75 @@
+tenant:
+  vm:
+    - name: myvm1
+      memory: 2048
+      vcpu: 2
+      capacity: 12
+      image_path: ./alpine-virt-3.8.5-x86_64.iso
+      # network:
+      #   - name: internet
+      #     bridge: sw1
+      #   - name: l2
+      #     bridge: sw2
+      interface:
+        - name: eth0
+          bridge: sw1
+          dhcp: true
+        - name: eth1
+          bridge: sw2
+          dhcp: false
+          ipv4addr: '192.168.131.2/24'
+          gateway: '192.168.131.1'
+      install:
+        - name: wireshark
+        - name: iperf3
+
+    - name: myvm2
+      memory: 2048
+      vcpu: 2
+      capacity: 12
+      image_path: ./alpine-virt-3.8.5-x86_64.iso
+      network:
+        - name: internet
+          bridge: sw1
+        - name: l2
+          bridge: sw2
+      interface:
+        - name: eth0
+          dhcp: true
+        - name: eth1
+          dhcp: false
+      install:
+        - name: wireshark
+        - name: iperf3
+
+  switch:
+    - name: sw1
+      network: internet
+      mode: nat
+      ipv4addr: '192.168.131.1/24'
+      dhcp: 
+        start: 192.168.131.2
+        end: 192.168.131.254
+        mask: 255.255.255.0
+
+    - name: sw2
+      network: l2
+      mode: bridge
+
+    - name: sw3
+      network: l3
+      mode: route
+      ipv4addr: '192.168.133.1/24'
+      dhcp:
+        start: 192.168.133.2
+        end: 192.168.133.254
+        mask: 255.255.255.0
+
+    - name: sw4
+      network: other
+      mode: route
+      ipv4addr: '192.168.134.1/24'
+      dhcp:
+        start: 192.168.134.2
+        end: 192.168.134.254
+        mask: 255.255.255.0

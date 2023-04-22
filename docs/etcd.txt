@@ -1,0 +1,244 @@
+#########################################
+# Install on Linux
+#########################################
+ETCD_VER=v3.3.8
+
+# choose either URL
+GOOGLE_URL=https://storage.googleapis.com/etcd
+GITHUB_URL=https://github.com/coreos/etcd/releases/download
+DOWNLOAD_URL=${GOOGLE_URL}
+
+rm -f /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
+rm -rf /tmp/test-etcd && mkdir -p /tmp/test-etcd
+
+curl -L ${DOWNLOAD_URL}/${ETCD_VER}/etcd-${ETCD_VER}-linux-amd64.tar.gz -o /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz
+tar xzvf /tmp/etcd-${ETCD_VER}-linux-amd64.tar.gz -C /tmp/test-etcd --strip-components=1
+
+sudo cp /tmp/test-etcd/etcd* /usr/local/bin
+
+/usr/local/bin/etcd --version
+ETCDCTL_API=3 /usr/local/bin/etcdctl version
+
+#########################################
+# Run with systemd
+#########################################
+
+#Seems like etcd is configured to run in localhost. Please make sure ports and data directory do not conflict!
+
+#########################################
+# Start node s1
+# make sure etcd process has write access to this directory
+# remove this directory if the cluster is new; keep if restarting etcd
+# rm -rf /tmp/etcd/s1
+
+
+# to write service file for etcd
+cat > /tmp/s1.service <<EOF
+[Unit]
+Description=etcd
+Documentation=https://github.com/coreos/etcd
+Conflicts=etcd.service
+Conflicts=etcd2.service
+
+[Service]
+Type=notify
+Restart=always
+RestartSec=5s
+LimitNOFILE=40000
+TimeoutStartSec=0
+
+ExecStart=/usr/local/bin/etcd --name s1 \
+  --data-dir /tmp/etcd/s1 \
+  --listen-client-urls http://localhost:2379 \
+  --advertise-client-urls http://localhost:2379 \
+  --listen-peer-urls http://localhost:2380 \
+  --initial-advertise-peer-urls http://localhost:2380 \
+  --initial-cluster s1=http://localhost:2380,s2=http://localhost:4380,s3=http://localhost:5380 \
+  --initial-cluster-state new
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo mv /tmp/s1.service /etc/systemd/system/s1.service
+
+
+
+# to start service
+sudo systemctl daemon-reload
+sudo systemctl cat s1.service
+sudo systemctl enable s1.service
+sudo systemctl start s1.service
+
+# to get logs from service
+sudo systemctl status s1.service -l --no-pager
+sudo journalctl -u s1.service -l --no-pager|less
+sudo journalctl -f -u s1.service
+
+# to stop service
+sudo systemctl stop s1.service
+sudo systemctl disable s1.service
+
+#########################################
+# Start node s2
+# make sure etcd process has write access to this directory
+# remove this directory if the cluster is new; keep if restarting etcd
+# rm -rf /tmp/etcd/s2
+
+
+# to write service file for etcd
+cat > /tmp/s2.service <<EOF
+[Unit]
+Description=etcd
+Documentation=https://github.com/coreos/etcd
+Conflicts=etcd.service
+Conflicts=etcd2.service
+
+[Service]
+Type=notify
+Restart=always
+RestartSec=5s
+LimitNOFILE=40000
+TimeoutStartSec=0
+
+ExecStart=/usr/local/bin/etcd --name s2 \
+  --data-dir /tmp/etcd/s2 \
+  --listen-client-urls http://localhost:4379 \
+  --advertise-client-urls http://localhost:4379 \
+  --listen-peer-urls http://localhost:4380 \
+  --initial-advertise-peer-urls http://localhost:4380 \
+  --initial-cluster s1=http://localhost:2380,s2=http://localhost:4380,s3=http://localhost:5380 \
+  --initial-cluster-state new
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo mv /tmp/s2.service /etc/systemd/system/s2.service
+
+
+
+# to start service
+sudo systemctl daemon-reload
+sudo systemctl cat s2.service
+sudo systemctl enable s2.service
+sudo systemctl start s2.service
+
+# to get logs from service
+sudo systemctl status s2.service -l --no-pager
+sudo journalctl -u s2.service -l --no-pager|less
+sudo journalctl -f -u s2.service
+
+# to stop service
+sudo systemctl stop s2.service
+sudo systemctl disable s2.service
+
+#########################################
+# Start node s3
+# make sure etcd process has write access to this directory
+# remove this directory if the cluster is new; keep if restarting etcd
+# rm -rf /tmp/etcd/s3
+
+
+# to write service file for etcd
+cat > /tmp/s3.service <<EOF
+[Unit]
+Description=etcd
+Documentation=https://github.com/coreos/etcd
+Conflicts=etcd.service
+Conflicts=etcd2.service
+
+[Service]
+Type=notify
+Restart=always
+RestartSec=5s
+LimitNOFILE=40000
+TimeoutStartSec=0
+
+ExecStart=/usr/local/bin/etcd --name s3 \
+  --data-dir /tmp/etcd/s3 \
+  --listen-client-urls http://localhost:5379 \
+  --advertise-client-urls http://localhost:5379 \
+  --listen-peer-urls http://localhost:5380 \
+  --initial-advertise-peer-urls http://localhost:5380 \
+  --initial-cluster s1=http://localhost:2380,s2=http://localhost:4380,s3=http://localhost:5380 \
+  --initial-cluster-state new
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo mv /tmp/s3.service /etc/systemd/system/s3.service
+
+
+
+# to start service
+sudo systemctl daemon-reload
+sudo systemctl cat s3.service
+sudo systemctl enable s3.service
+sudo systemctl start s3.service
+
+# to get logs from service
+sudo systemctl status s3.service -l --no-pager
+sudo journalctl -u s3.service -l --no-pager|less
+sudo journalctl -f -u s3.service
+
+# to stop service
+sudo systemctl stop s3.service
+sudo systemctl disable s3.service
+
+
+
+Check status:
+
+ETCDCTL_API=3 /usr/local/bin/etcdctl \
+  --endpoints localhost:2379,localhost:4379,localhost:5379 \
+  endpoint health
+
+###############################
+# Start from command line
+
+
+
+
+
+# make sure etcd process has write access to this directory
+# remove this directory if the cluster is new; keep if restarting etcd
+# rm -rf /tmp/etcd/s1
+
+
+/usr/local/bin/etcd --name s1 \
+  --data-dir /tmp/etcd/s1 \
+  --listen-client-urls http://localhost:2379 \
+  --advertise-client-urls http://localhost:2379 \
+  --listen-peer-urls http://localhost:2380 \
+  --initial-advertise-peer-urls http://localhost:2380 \
+  --initial-cluster s1=http://localhost:2380,s2=http://localhost:4380,s3=http://localhost:5380 \
+  --initial-cluster-state new
+
+
+# make sure etcd process has write access to this directory
+# remove this directory if the cluster is new; keep if restarting etcd
+# rm -rf /tmp/etcd/s2
+
+
+/usr/local/bin/etcd --name s2 \
+  --data-dir /tmp/etcd/s2 \
+  --listen-client-urls http://localhost:4379 \
+  --advertise-client-urls http://localhost:4379 \
+  --listen-peer-urls http://localhost:4380 \
+  --initial-advertise-peer-urls http://localhost:4380 \
+  --initial-cluster s1=http://localhost:2380,s2=http://localhost:4380,s3=http://localhost:5380 \
+  --initial-cluster-state new
+
+
+# make sure etcd process has write access to this directory
+# remove this directory if the cluster is new; keep if restarting etcd
+# rm -rf /tmp/etcd/s3
+
+
+/usr/local/bin/etcd --name s3 \
+  --data-dir /tmp/etcd/s3 \
+  --listen-client-urls http://localhost:5379 \
+  --advertise-client-urls http://localhost:5379 \
+  --listen-peer-urls http://localhost:5380 \
+  --initial-advertise-peer-urls http://localhost:5380 \
+  --initial-cluster s1=http://localhost:2380,s2=http://localhost:4380,s3=http://localhost:5380 \
+  --initial-cluster-state new

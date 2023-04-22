@@ -1,0 +1,74 @@
+# Tenant details
+name: Slow    # Provide the name of your org
+vpcs:
+  - name: Slow1 # Provide the list of names of your desired vpcs
+    location: Raleigh # Provide the desired locations (as cities) of your edge where the CDN has to be implemented 
+    subnets:
+      - name: slw1-rdu1 # Provide the name of subnets required for each vpc
+        mode: nat # nat/route mode
+        gateway: '192.168.131.1/24' # Provide gateway details
+        dhcp: # Provide the start, end range and mask  of dhcp ip addresses
+          start: 192.168.131.2
+          end: 192.168.131.254
+          mask: 255.255.255.0
+      - name: slw1-rdu2 # Provide the name of subnets required for each vpc
+        mode: nat # nat/route mode
+        gateway: '192.168.132.1/24' # Provide gateway details
+        dhcp: # Provide the start, end range and mask  of dhcp ip addresses
+          start: 192.168.132.2
+          end: 192.168.132.254
+          mask: 255.255.255.0
+    vms:
+      - name: vm11 # Provide the name of the VM
+        memory: 2048 # Memory
+        vcpu: 2 
+        capacity: 12  # ROM in GB 
+        interfaces:
+          - name: eth0 # interface name
+            subnet: slw1-rdu1 # must be same as subnet name that the VM must be connected to
+            dhcp: true
+          - name: eth1
+            subnet: slw1-rdu1
+            ipaddr: '192.168.131.2/24'  #ipaddr
+      - name: vm12 # Provide the name of the VM
+        memory: 2048 # Memory
+        vcpu: 2
+        capacity: 12  # ROM in GB
+        interfaces:
+          - name: eth0 # interface name
+            subnet: slw1-rdu1 # must be same as subnet name that the VM must be connected to
+            dhcp: true
+          - name: eth1
+            subnet: slw1-rdu1
+            ipaddr: '192.168.131.2/24'  #ipaddr
+
+  - name: Slow2  # Provide the list of names of your desired vpcs
+    location: Washington # Provide the desired locations (as cities) of your edge where the CDN has to be implemented 
+    subnets:
+      - name: slw2-iad # Provide the name of subnets required for each vpc
+        mode: route # nat/route mode
+        gateway: '192.168.131.1/24' # Provide gateway details
+        dhcp: # Provide the start, end range and mask  of dhcp ip addresses
+          start: 192.168.131.2
+          end: 192.168.131.254
+          mask: 255.255.255.0
+    vms:
+      - name: vm11 # Provide the name of the VM
+        memory: 2048 # Memory
+        vcpu: 2 
+        capacity: 12  # ROM in GB 
+        interfaces:
+          - name: eth0 # interface name
+            subnet: slw2-iad # must be same as subnet name that the VM must be connected to
+            dhcp: true
+          - name: eth1  
+            subnet: slw2-iad
+            ipaddr: '192.168.131.2/24'  #ipaddr 
+      - name: vm12 # Provide the name of the VM
+        memory: 2048 # Memory
+        vcpu: 2 
+        capacity: 12  # ROM in GB 
+        interfaces:
+          - name: eth0 # interface name
+            subnet: slw2-iad # must be same as subnet name that the VM must be connected to
+            dhcp: true

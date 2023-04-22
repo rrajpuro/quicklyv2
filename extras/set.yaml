@@ -1,0 +1,19 @@
+- name: Example playbook
+  gather_facts: no
+  hosts: localhost
+  vars:
+    new:
+      - name: John
+        age: 25
+      - name: Jane
+        age: 30
+      - name: Bob
+        age: 35
+  tasks:
+    - name: Add key-value pair
+      set_fact:
+        new : "{{ new + [item | combine({ 'new_key': item.age + 5 })]}}"
+      loop: "{{ new }}"
+
+    - debug: 
+        msg: "{{new}}"

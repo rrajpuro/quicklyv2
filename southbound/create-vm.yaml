@@ -1,0 +1,85 @@
+---
+- name: Create new Ubuntu linux virtual machines
+  hosts: self
+  gather_facts: false
+  become: true
+  # vars:
+  #   vmid: '080122'
+  #   name: vm22 #--------- hostname
+  #   state: requested  # requested/processing/active/terminate
+  #   memory: 2048 #-------
+  #   vcpu: 2 #----------
+  #   capacity: 12
+  #   image_path: /var/quickly/base/jammy-server-cloudimg-amd64-disk-kvm.img
+  #   interfaces:
+  #     # Do not give duplicate default gateways under all interfaces.
+  #     # Limitation of netplan to give global default routes
+  #     - name: eth0 #------
+  #       subnet: Network1 #------
+  #       subid: '080101'
+  #       mac: '52:54:00:12:34:01'
+  #       ipaddr: '192.168.131.2/24'  #ipaddr 
+  #       gateway: '192.168.131.1'
+  #     - name: eth1  
+  #       subnet: Network1
+  #       subid: '080101'
+  #       mac: '52:54:00:12:34:02'
+  #       dhcp: true
+
+  tasks:
+    - name: Create vm specific directory
+      file:
+        path: '/var/quickly/tenant/{{ vmid[:2] }}/vpc-{{ vmid[:4]}}/vm-{{ vmid }}'
+        state: directory
+
+    - name: Create main disk image
+      command:
+        cmd: > 
+          qemu-img create -F qcow2 
+          -b {{ image_path }} 
+          -f qcow2 /var/quickly/tenant/{{ vmid[:2] }}/vpc-{{ vmid[:4]}}/vm-{{ vmid }}/vm-{{ vmid }}.qcow2 
+          {{ capacity }}G
+
+    - name: Create network configuration file
+      ansible.builtin.template:
+        src: ./templates/ubuntu-netconf.j2
+        dest: "/var/quickly/tenant/{{ vmid[:2] }}/vpc-{{ vmid[:4]}}/vm-{{ vmid }}/vm-{{ vmid }}-netconf"
+
+    - name: Create user configuration file
+      ansible.builtin.template:
+        src: ./templates/ubuntu-userconf.j2
+        dest: "/var/quickly/tenant/{{ vmid[:2] }}/vpc-{{ vmid[:4]}}/vm-{{ vmid }}/vm-{{ vmid }}-userconf"
+
+    - name: Create user configuration file
+      ansible.builtin.template:
+        src: ./templates/ubuntu-metadataconf.j2
+        dest: "/var/quickly/tenant/{{ vmid[:2] }}/vpc-{{ vmid[:4]}}/vm-{{ vmid }}/vm-{{ vmid }}-metadataconf"
+
+    - name: Create seed disk image
+      command: >
+        cloud-localds -v 
+        /var/quickly/tenant/{{ vmid[:2] }}/vpc-{{ vmid[:4]}}/vm-{{ vmid }}/vm-{{ vmid }}-seed.iso 
+        /var/quickly/tenant/{{ vmid[:2] }}/vpc-{{ vmid[:4]}}/vm-{{ vmid }}/vm-{{ vmid }}-userconf 
+        /var/quickly/tenant/{{ vmid[:2] }}/vpc-{{ vmid[:4]}}/vm-{{ vmid }}/vm-{{ vmid }}-metadataconf
+        --network-config=/var/quickly/tenant/{{ vmid[:2] }}/vpc-{{ vmid[:4]}}//vm-{{ vmid }}/vm-{{ vmid }}-netconf 
+  
+    - name: Define vm from xml and set autostart
+      community.libvirt.virt:
+        command: define
+        xml: "{{ lookup('template', 'vm-install-ubuntu.xml.j2') }}"
+        autostart: true
+
+    - name: Start VM
+      community.libvirt.virt:
+        name: "{{ vmid }}"
+        state: running
+
+    - name: Loading VM
+      ansible.builtin.pause:
+        seconds: 45
+
+    # Need to manually configure netplan because
+    # Cloud-init images not accepting netplan from seed image
+    - name: Configure Netplan on VM 
+      command: "python3 ./configure-vm-ubuntu.py '{{ vmid }}'"
+      tags: c
