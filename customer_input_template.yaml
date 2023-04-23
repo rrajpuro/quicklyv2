@@ -1,0 +1,51 @@
+# Tenant details
+apiVersion: '2'  #calls the appropriate northbound API  
+name:  'Tesla'   # Provide the name of your org
+logging: 'true' # true/false. If true create a transit VPC and add the logging server
+vpcs: 
+  - name: 'redone'  # Provide name of your vpc
+    location: 'CA'  # Provide the desired locations (as cities) of your edge where the CDN has to be implemented 
+    tip:  '10.0.1.1/24'           # Provide transit Server IP address
+    tipremote: '10.0.1.2/24'     # Provide the remote Server's IP connected to the transit server
+    cdn:
+      cdndomainname: 'procacher'     # Other providers' inspired feature: Provide the CDN Server Name 
+      ha: 'true' # true/false. Provide input for high availibility
+      primaryip:  '192.168.150.1/31'   # Provide  IP address of the CDN Server
+      secondaryip: '192.168.150.2/31'  # Provide only if ha is required
+      origin: '1.1.1.1' # Origin server 
+      originport: '80'      # Other CDN providers' inspired feature - port number  of the origin server
+
+    subnets: 
+      - name: 'net1'  # Provide the name of subnets required for each vpc
+        mode: 'nat' # nat/route mode
+        gateway: '192.168.131.1/24' # Provide gateway details
+        dhcp:    # Provide the start, end range and mask  of dhcp ip addresses
+          start: '192.168.132.2'
+          end: '192.168.132.254'
+          mask: '255.255.255.0'
+    containers:
+      - name: 'cn11' # Provide the name of the VM
+        image: 'ubuntu' # Default Ubuntu Image
+        interfaces:
+          - name: 'eth0'  # interface name
+            subnet: 'net1' # must be same as subnet name that the VM must be connected to
+            ipaddr: '192.168.131.2/24'
+  - name: 'redtwo'  # Provide the list of names of your desired vpcs
+    location: 'MA'   # Provide the desired locations (as cities) of your edge where the CDN has to be implemented 
+    subnets:
+      - name: 'net2'  # Provide the name of subnets required for each vpc
+        mode: 'route' # nat/route mode
+        gateway: '192.168.131.1/24' # Provide gateway details
+        dhcp: # Provide the start, end range and mask  of dhcp ip addresses
+          start: '192.168.133.2'
+          end: '192.168.133.254'
+          mask: '255.255.255.0'
+    containers:
+      - name: 'cn11' # Provide the name of the VM
+        image: 'ubuntu' # Default Ubuntu Image
+        interfaces:
+          - name: 'eth0'  # interface name
+            subnet: 'net1' # must be same as subnet name that the VM must be connected to
+            ipaddr: '192.168.131.2/24'
+
+

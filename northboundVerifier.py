@@ -9,9 +9,9 @@ def checkVPCNames(data):
     for vpc in data["vpcs"]:
         names.append(vpc["name"])
     if len(names) != len(set(names)):
-        return "[E] Name Conflict found in VPCs (0x10)"
+        return "\t[E] Name Conflict found in VPCs (0x10)"
     else:
-        return "[OK] VPC Names (0x00)"
+        return "[OK] VPC Names valid (0x00)"
 
 def checkVPCSubnets(data):
     subnetNames = []
@@ -19,9 +19,9 @@ def checkVPCSubnets(data):
         for subnet in vpc["subnets"]:
             subnetNames.append(subnet["name"])
     if len(subnetNames) != len(set(subnetNames)):
-        return "[E] Subnet Name Conflict found in VPC (0x1a)"
+        return "\t[E] Subnet Name Conflict found in VPC (0x1a)"
     else:
-        return "[OK] Subnet Name (0x00)"+"+"+str(subnetNames)
+        return "[OK] VPC Subnet Name valid (0x00)"+"+"+str(subnetNames)
     
 def checkVPCSubnetMode(data):
     flag = False
@@ -31,9 +31,9 @@ def checkVPCSubnetMode(data):
                 flag = True
                 break
     if flag:
-        return "[E] Choose nat/route Network Mode (0x1b)"
+        return "\t[E] Network Mode invalid! (nat/route) (0x1b)"
     else:
-        return "[OK] Network Mode (0x00)"
+        return "[OK] Network Mode valid (0x00)"
 
 def findIPRange(network):
     f1,f2,f3,f4=network.split('.')
@@ -105,7 +105,7 @@ def findIPRange(network):
 
     return network+"+"+last
 
-def masterCheckIP(ipList):
+def ipValidator(ipList):
     check = True
     final=""
     try:
@@ -127,28 +127,26 @@ def checkVPCSubnetGatewayIP(data):
     for vpc in data["vpcs"]:
         for subnet in vpc["subnets"]:
             gatewayIPList.append(subnet["gateway"])
-        print(gatewayIPList)
         if len(gatewayIPList) != len(set(gatewayIPList)):
             dup = True
             break
         else:
-            ans = masterCheckIP(gatewayIPList)
-            print(ans)
+            ans = ipValidator(gatewayIPList)
             if "i1" in ans:
-                return "[E] Wrong IP Format (0x1c)"
+                return "\t[E] Wrong IP Format (0x1c)"
             else:
                 if (ipaddress.ip_address(subnet["dhcp"]["start"]) not in ipaddress.ip_network(ans.split("+")[1])) or (ipaddress.ip_address(subnet["dhcp"]["end"]) not in ipaddress.ip_network(ans.split("+")[1])):
-                    return "[E] IP Address not in range (0x1cc)"
+                    return "\t[E] IP Address not in range (0x1cc)"
             gatewayIPList = []
     if dup:
-        return "[E] Conflicting Gateway IPs in a VPC (0xd)"
-    return "[OK] Correct IP Format (0x00)"
+        return "\t[E] Conflicting Gateway IPs in a VPC (0x1d)"
+    return "[OK] VPC IP Format valid (0x00)"
 
-def checkVMNames(data):
+def checkContainerNames(data):
     flag = False
     names = []
     for vpc in data["vpcs"]:
-        for vms in vpc["vms"]:
+        for vms in vpc["containers"]:
             names.append(vms["name"])
         if len(names) != len(set(names)):
             flag = True
@@ -156,15 +154,15 @@ def checkVMNames(data):
         else:
             names = []
     if flag:
-        return "[E] Conflicting VM Names (0xe)"
+        return "\t[E] Conflicting Container Names (0x1e)"
     else:
-        return "[OK] VM Names (0x00)"
+        return "[OK] Container Names valid (0x00)"
 
-def checkVMIntNames(data):
+def checkContainerIntNames(data):
     flag = False
     vmIntNames = []
     for vpc in data["vpcs"]:
-        for vms in vpc["vms"]:
+        for vms in vpc["containers"]:
             for inter in vms["interfaces"]:
                 vmIntNames.append(inter["name"])
             if len(vmIntNames) != len(set(vmIntNames)):
@@ -173,39 +171,81 @@ def checkVMIntNames(data):
             else:
                 vmIntNames = []
     if flag:
-        return "[E] Conflict in VM's Interface Names (0x1f)"
+        return "\t[E] Container Interface Names Conflict! (0x1f)"
     else:
-        return "[OK] VM's Interface Names (0x00)"
+        return "[OK] Container Interface Names valid (0x00)"
 
-def checkVMSubnet(data):
+def checkContainerSubnet(data):
     flag = False
     subnetNames = []
     for vpc in data["vpcs"]:
         for subnets in vpc["subnets"]:
             subnetNames.append(subnets["name"])
-        for vms in vpc["vms"]:
+        for vms in vpc["containers"]:
             for subnet in vms["interfaces"]:
                 if subnet["subnet"] not in subnetNames:
                     flag = True
                     break
         subnetNames = []
     if flag:
-        return "[E] VM's Network not present in VPC (0x20)"
+        return "\t[E] Container Network not present in VPC (0x20)"
     else:
-        return "[OK] VM's Network present in VPC (0x00)"
+        return "[OK] Container Network presence valid (0x00)"
 
-def checkVMIntDorS(data):
-    flag = False
+def checkContainerIntDorS(data):
+    flag = ""
     for vpc in data["vpcs"]:
-        for vms in vpc["vms"]:
+        for vms in vpc["containers"]:
             for inter in vms["interfaces"]:
                 if "dhcp" in inter.keys() and "ipaddr" in inter.keys():
-                    flag = True
+                    flag = "conflict"
                     break
-    if flag:
-        return "[E] Conflicting config for VM's interface, found both DHCP and Static! (0x21)"
+                elif "ipaddr" in inter.keys():
+                    ip = inter["ipaddr"]
+                    try:
+                        ipaddress.ip_address(ip.split("/")[0])
+                    except ValueError:
+                        flag = "locha"
+                        break
+    
+    if flag == "conflict":
+        return "\t[E] Container interface conflict! Found both DHCP and Static! (0x21)"
+    elif flag == 'locha':
+        return "\t[E] Container interface IP is invalid! (0x22)"
     else:
-        return "[OK] VM's interface Config (0x00)"
+        return "[OK] Container interface configuration valid (0x00)"
+
+def checkCDNDetails(data):
+    flag = ""
+    haIPList = []
+    for vpc in data["vpcs"]:
+        if "cdn" in vpc.keys():
+            if vpc["cdn"]["cdndomainname"] == None:
+                flag = "name"
+                break
+            if vpc["cdn"]["ha"] == 'true':
+                haIPList.append(vpc["cdn"]["primaryip"])
+                haIPList.append(vpc["cdn"]["secondaryip"])
+                if len(haIPList) != len(set(haIPList)):
+                    flag = "haipsame"
+                    break
+            if vpc["cdn"]["origin"] == None:
+                flag = "nooriginip"
+                break
+            if vpc["cdn"]["originport"] == None:
+                flag = "nooriginport"
+                break
+
+    if flag == "name":
+        return "\t[E] No name in CDN Domain Name (0x23)"
+    elif flag == "haipsame":
+        return "\t[E] CDN HA IP Conflict! (0x24)"
+    elif flag == "nooriginip":
+        return "\t[E] CDN Origin IP Missing! (0x25)"
+    elif flag == "nooriginport":
+        return "\t[E] CDN Origin Port Missing! (0x26)"
+    else:
+        return "[OK] CDN details valid (0x00)"
 
 def masterCheck(data):
     errorCodes=[]
@@ -215,11 +255,13 @@ def masterCheck(data):
         errorCodes.append(cS.split("+")[0])
         errorCodes.append(checkVPCSubnetMode(data))
         errorCodes.append(checkVPCSubnetGatewayIP(data))
+        #errorCodes.append(checkVPCTransitIP(data))
 
-        errorCodes.append(checkVMNames(data))
-        errorCodes.append(checkVMIntNames(data))
-        errorCodes.append(checkVMSubnet(data))
-        errorCodes.append(checkVMIntDorS(data))
+        errorCodes.append(checkContainerNames(data))
+        errorCodes.append(checkContainerIntNames(data))
+        errorCodes.append(checkContainerSubnet(data))
+        errorCodes.append(checkContainerIntDorS(data))
+        errorCodes.append(checkCDNDetails(data))
     except KeyError:
         errorCodes.append("[EE] Key Error, please check the YAML file, invalid/unknown key encountered (0xff)")
 
@@ -233,6 +275,7 @@ if __name__ == "__main__":
     with open(args[1], "r") as stream:
         try:
             data = yaml.safe_load(stream)
-            print(masterCheck(data))
+            for i in masterCheck(data):
+                print(i)
         except yaml.YAMLError as exc:
             print(masterError())
