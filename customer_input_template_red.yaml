@@ -1,0 +1,38 @@
+# Tenant details
+apiVersion: '2'  #calls the appropriate northbound API  
+name:  'Red'   # Provide the name of your org
+logging: 'True' # true/false. If true create a transit VPC and add the logging server
+vpcs: 
+  - name: 'Redone'  # Provide name of your vpc
+    location: 'CA'  # Provide the desired locations (as cities) of your edge where the CDN has to be implemented 
+    cdn:
+      cdndomainname: 'red.cdn.com'     # Other providers' inspired feature: Provide the CDN Server Name 
+      ha: 'True' # true/false. Provide input for high availibility
+      primaryip:  '172.21.150.1/31'   # Provide  IP address of the CDN Server
+      secondaryip: '192.168.150.3/31'  # Provide only if ha is required
+      origin: '1.1.1.1' # Origin server 
+      originport: '3060'      # Other CDN providers' inspired feature - port number  of the origin server
+
+  - name: 'Redtwo'  # Provide the list of names of your desired vpcs
+    location: 'CA'   # Provide the desired locations (as cities) of your edge where the CDN has to be implemented 
+    cdn:
+      cdndomainname: 'red.cdn.com'     # Other providers' inspired feature: Provide the CDN Server Name 
+      ha: 'False' # true/false. Provide input for high availibility
+      primaryip:  '192.168.150.1/31'   # Provide  IP address of the CDN Server
+      secondaryip: ''  # Provide only if ha is True
+      origin: '1.1.1.1' # Origin server 
+      originport: '3060'      # Other CDN providers' inspired feature - port number  of the origin server
+    subnets:
+      - name: 'Network1'  # Provide the name of subnets required for each vpc
+        mode: 'nat' # nat/route mode
+        gateway: '192.168.131.1/24' # Provide gateway details
+    containers:
+      - name: 'cn11' # Provide the name of the VM
+        image: 'ubuntu' # Default Ubuntu Image
+        interfaces:
+          - name: 'eth0'  # interface name
+            subnet: 'Network1' # must be same as subnet name that the VM must be connected to
+            ipaddr: '192.168.131.2/24'
+            gateway: '192.168.131.1' 
+
+
