@@ -123,15 +123,16 @@ def configureiptablesHA(vpc, orgport, cdnip1, cdnip2, cdnport):
     subprocess.call(cmd, shell=True)
     return
 
-def main(cdn,vpckey,logip):
+def main(cdn,vpckey,log):
     cdnport = '3040'
     logport = '3090'
+    logip = '10.0.100.2'
     vars = {
         'cdn_port': cdnport,
         'webapp_port': cdn['originport'],
         'webapp_IP': cdn['origin']
     }
-    if logip is not None:
+    if log is 'True':
         vars = {
             'logapp_IP': logip,
             'logapp_port': logport,
@@ -151,9 +152,6 @@ def main(cdn,vpckey,logip):
     else:
         configureiptables(vpckey, cdn['originport'], cdn['primaryip'], cdnport)
 
-    if logip is not None:
-        # TODO Configure GRE to send logs to logging server
-        pass
     return
 
 if __name__=="__main__":
@@ -165,4 +163,4 @@ if __name__=="__main__":
         'primaryip': '192.168.150.1/31',
         'secondaryip': '192.168.150.3/31'
     }
-    main(cdn, '007', '10.10.10.10')
+    main(cdn, '007', 'True')
