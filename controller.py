@@ -108,7 +108,7 @@ def check_requests(data):
                     data['tenants'][tenantkey]['vpcs'][vpckey]['cdn']['state'] = states[1]
                     update_db(data)
 
-                    print(f'CDN requested with origin: {cdn["orgin"]}:{cdn["orginport"]}')
+                    print(f'CDN requested with origin: {cdn["origin"]}:{cdn["originport"]}')
                     # data['tenants'][tenantkey]
                     if 'logging' in tenantval.keys() and tenantval['logging'] == 'True':
                         # create cdnwith logging

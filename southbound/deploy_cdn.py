@@ -93,7 +93,7 @@ def configureiptables(vpc, orgport, cdnip, cdnport):
     subprocess.call(cmd, shell=True)
     cmd =  f'\
         ip netns exec {vpc} \
-        iptables -t nat -A QUICKLY -j DNAT --to-destination {cdnip}:{cdnport}'
+        iptables -t nat -A QUICKLY -p tcp -m tcp --dport {orgport} -j DNAT --to-destination {cdnip}:{cdnport}'
     print(f'Executing: {cmd}')
     subprocess.call(cmd, shell=True)
     return
@@ -132,7 +132,7 @@ def main(cdn,vpckey,log):
         'webapp_port': cdn['originport'],
         'webapp_IP': cdn['origin']
     }
-    if log is 'True':
+    if log == 'True':
         vars = {
             'logapp_IP': logip,
             'logapp_port': logport,
