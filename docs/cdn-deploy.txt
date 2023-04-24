@@ -1,0 +1,17 @@
+ 2749  sudo ip netns exec 080211 ping 172.21.20.1
+ 2750  docker ps -a
+ 2751  docker run nmadamshetti/webapp-node -p 3060:3060 --env-file myenvwebapp 
+ 2752  docker run nmadamshetti/webapp-node -p 3060:3060 --env-file ./myenvwebapp 
+ 2753  docker run -p 3060:3060 --env-file ./myenvwebapp nmadamshetti/webapp-node
+ 2754* docker run -p 3060:3060 -d --env-file ./myenvwebapp nmadamshetti/
+ 2755  docker network ls
+ 2756  brctl show
+ 2757  ip addr show veth0ee4b05
+ 2758  docker inspect -f {{.NetworkSettings}} 
+ 2759  docker run -p 3060:3060 -d --env-file ./myenvwebapp nmadamshetti/webapp-node
+ 2760  netstat | grep 3060
+ 2761  docker run -p 3060:3060 -d --env-file ./myenvwebapp nmadamshetti/webapp-node
+ 2762  docker inspect -f {{.NetworkSettings}} suspicious_burnell
+ 2763  docker inspect suspicious_burnell
+ 2764  docker inspect -f {{.NetworkSettings.IPAddress}} suspicious_burnell
+ 2765  docker run -p 3040:3040 -d --env-file ./myenvcdn nmadamshetti/cdn-node

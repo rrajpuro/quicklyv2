@@ -17,3 +17,18 @@ sudo iptables -t nat -A QUICKLY -p tcp -m tcp --dport $PORT -j DNAT --to-destina
 
 # Option to match destination IP to be more specific in the future
 # sudo iptables -t nat -A OUTPUT -d 192.168.0.100/32 -p tcp -m tcp --dport 8080 -j DNAT --to-destination 10.0.0.11:8080
+
+iptables -t nat -A OUTPUT -d 192.168.0.100/32 -p tcp -m tcp --dport 8080 -j DNAT --to-destination 10.0.0.11:8080
+iptables -t nat -A OUTPUT -d 192.168.0.100/32 -p tcp -m tcp --dport 8080 -j DNAT --to-destination 10.0.0.12:8080
+
+
+iptables --table nat --new-chain QUICKLY
+iptables -t nat -A PREROUTING -d 192.168.0.100/32 -p tcp -m tcp --dport 8080 -j QUICKLY
+iptables -t nat -A QUICKLY -m statistic --mode random --probability 0.5 -j DNAT --to-destination 10.0.0.11:8080
+iptables -t nat -A QUICKLY -j DNAT --to-destination 10.0.0.12:8080
+
+iptables --table nat --new-chain QUICKLY
+iptables -t nat -A PREROUTING -m addrtype --dst-type LOCAL -p tcp -m tcp --dport 8080 -j QUICKLY
+iptables -t nat -A QUICKLY -m statistic --mode random --probability 0.5 -j DNAT --to-destination 10.0.0.11:8080
+iptables -t nat -A QUICKLY -j DNAT --to-destination 10.0.0.12:8080
+
