@@ -3,10 +3,9 @@ import random
 import json
 import etcd3
 
-with open('customer_input_template.yaml', 'r') as f:
+with open('customer_input_template_red.yaml', 'r') as f:
     data = yaml.safe_load(f)
 e = etcd3.client()
-e.delete_prefix('/')
 
 def convert_to_dict(args):
     result = {}
@@ -35,11 +34,9 @@ vpcs = {}
 get_tip = data['vpcs']
 
 new_tenant = {
-    'id': str(random.randint(0, 99)),
+    'id': str(random.randint(10, 99)),
     'name': org_name,
     'state': 'requested',
-    'tip': get_tip[0]['tip'],
-    'tipremote': get_tip[0]['tipremote'],
     'logging': data['logging']
 
 }
@@ -50,13 +47,18 @@ next_octet = last_octet + 1
 cip = f"{octets[0]}.{octets[1]}.{octets[2]}.{next_octet}"
 
 for vpc in data['vpcs']:
+    vpcid =  new_tenant['id'] + str(random.randint(0, 99))
+    trunc_vpc_id = vpcid[-2:]
+    fourths_octet = random.randint(0, 255)
+    
     vpc_data = {
-        'vpcid': new_tenant['id'] + str(random.randint(0, 99)),
+        'vpcid':vpcid,
         'name': vpc['name'],
         'location': vpc['location'],
-        'pip':pip + "/24",
+        'pip':pip + "/24",  
         'cip': cip+ "/24",
-
+        'tip': f"10.0.{trunc_vpc_id}.{fourths_octet}", 
+        'tipremote':f"10.0.{trunc_vpc_id}.{fourths_octet+1}",
         'state': 'requested',
         'cdn': {},
         'subnets': {},
@@ -66,6 +68,7 @@ for vpc in data['vpcs']:
         cdn = vpc['cdn']
 
         cdn_data = {
+            'state': 'requested',
             'cdndomainname': cdn['cdndomainname'],
             'ha': cdn['ha'],
             'primaryip':cdn['primaryip'],
@@ -74,41 +77,44 @@ for vpc in data['vpcs']:
             'originport':cdn['originport']
         }
         vpc_data['cdn'] = cdn_data
-
-    for subnet in vpc['subnets']:
-        subnet_data = {
-            'subid': vpc_data['vpcid'] + str(random.randint(0, 99)),
-            'name': subnet['name'],
-            'mode': subnet['mode'],
-            'gateway': subnet['gateway'],
-            'dhcp': subnet.get('dhcp', {}),
-        }
-        vpc_data['subnets'][subnet_data['subid']] = subnet_data
-
-    for container in vpc.get('containers', []):
-        container_data = {
-            'containerid': vpc_data['vpcid'] + str(random.randint(100, 200)),
-            'name': container['name'],
-            'state': 'requested',
-            'image': container.get('image', 'ubuntu'),
-            'interfaces': {},
-        }
-        for interface in container['interfaces']:
-            interface_data = {
-                'name': interface['name'],
-                'subnet': interface['subnet'],
-                'dhcp': interface.get('dhcp', False),
-                'ipaddr': interface.get('ipaddr', ''),
+    if 'subnets' in vpc:
+        for subnet in vpc['subnets']:
+            subnet_data = {
+                'subid': vpc_data['vpcid'] + str(random.randint(0, 99)),
+                'state':'requested',
+                'name': subnet['name'],
+                'mode': subnet['mode'],
+                'gateway': subnet['gateway'],
             }
-            container_data['interfaces'][interface['name']] = interface_data
-        vpc_data['containers'][container_data['containerid']] = container_data
+            vpc_data['subnets'][subnet_data['subid']] = subnet_data
+    if 'containers' in vpc:
+        for container in vpc.get('containers', []):
+            container_data = {
+                'containerid': vpc_data['vpcid'] + str(random.randint(100, 200)),
+                'name': container['name'],
+                'state': 'requested',
+                'image': container.get('image', 'ubuntu'),
+                'interfaces': {},
+            }
+            for interface in container['interfaces']:
+                interface_data = {
+                    'name': interface['name'],
+                    'subnet': interface['subnet'],
+                    'ipaddr': interface.get('ipaddr', ''),
+                    'gateway': interface.get('gateway','')
+                }
+                container_data['interfaces'][interface['name']] = interface_data
+            vpc_data['containers'][container_data['containerid']] = container_data
 
     vpcs[vpc['name']] = vpc_data
-    
-output = {'tenants': {new_tenant['id']: {'name': new_tenant['name'], 'logging': new_tenant['logging'], 'state': new_tenant['state'],'tip': new_tenant['tip'], 'tipremote':new_tenant['tipremote'], 'vpcs': {vpc_data['vpcid']: vpc_data for vpc_data in vpcs.values()}}}}
+
+
+
+output = {'tenants': {new_tenant['id']: {'name': new_tenant['name'], 'logging': new_tenant['logging'], 'state': new_tenant['state'], 'vpcs': {vpc_data['vpcid']: vpc_data for vpc_data in vpcs.values()}}}}
 json_output = json.dumps(output)
 output_dict = json.loads(json_output)
 kvpairs = convert_to_kv_pairs(output_dict)
+# print(output_dict)
 
 for k, v in kvpairs:
     e.put(k, str(v))
@@ -116,6 +122,8 @@ for k, v in kvpairs:
 
 
 #Retrieve Everything
+
+# e.delete_prefix('/')
 
 db = e.get_all()
 retrieved_info = convert_to_dict(db)
