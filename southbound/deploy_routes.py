@@ -75,10 +75,10 @@ def configureRoutes(vpcns, tipremote):
     # ip netns exec {ns1} ip tunnel add {ns1if} mode gre remote {ns2_ip} local {ns1_ip} ttl 255
     # sudo ip netns exec 0701 ip route add 10.0.100.2 via 10.0.1.1
     # sudo ip netns exec 0701 iptables -t nat -A POSTROUTING -d 10.0.100.2/24 -j MASQUERADE
-    cmd =  f'ip netns exec {vpcns} ip route add 10.0.100.2 via {nexthop}'
+    cmd =  f'ip netns exec {vpcns} ip route add 10.0.100.1 via {nexthop}'
     print(f'Executing: {cmd}')
     subprocess.call(cmd, shell=True)
-    cmd =  f'ip netns exec {vpcns} iptables -t nat -A POSTROUTING -d 10.0.100.2/24 -j MASQUERADE'
+    cmd =  f'ip netns exec {vpcns} iptables -t nat -A POSTROUTING -d 10.0.100.1/24 -j MASQUERADE'
     print(f'Executing: {cmd}')
     subprocess.call(cmd, shell=True)
     return
