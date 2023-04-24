@@ -14,6 +14,7 @@ tenants:
         tipremote: 10.0.1.2/24
         cdn:
           state: active
+          cdndomainname: redone.cdn.com
           origin: 1.1.1.1
           originport: 3060
           ha: 'True'
@@ -29,6 +30,7 @@ tenants:
         tipremote: 10.0.2.2/24
         cdn:
           state: active
+          cdndomainname: redtwo.cdn.com
           origin: 1.1.1.1
           originport: 3060
           ha: 'False'
