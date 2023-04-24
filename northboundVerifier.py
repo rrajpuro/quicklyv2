@@ -16,8 +16,9 @@ def checkVPCNames(data):
 def checkVPCSubnets(data):
     subnetNames = []
     for vpc in data["vpcs"]:
-        for subnet in vpc["subnets"]:
-            subnetNames.append(subnet["name"])
+        if "subnets" in vpc.keys():
+            for subnet in vpc["subnets"]:
+                subnetNames.append(subnet["name"])
     if len(subnetNames) != len(set(subnetNames)):
         return "\t[E] Subnet Name Conflict found in VPC (0x1a)"
     else:
@@ -26,10 +27,11 @@ def checkVPCSubnets(data):
 def checkVPCSubnetMode(data):
     flag = False
     for vpc in data["vpcs"]:
-        for subnet in vpc["subnets"]:
-            if subnet["mode"] not in ["nat", "route"]:
-                flag = True
-                break
+        if "subnets" in vpc.keys():
+            for subnet in vpc["subnets"]:
+                if subnet["mode"] not in ["nat", "route"]:
+                    flag = True
+                    break
     if flag:
         return "\t[E] Network Mode invalid! (nat/route) (0x1b)"
     else:
@@ -125,34 +127,34 @@ def checkVPCSubnetGatewayIP(data):
     dup = False
     gatewayIPList = []
     for vpc in data["vpcs"]:
-        for subnet in vpc["subnets"]:
-            gatewayIPList.append(subnet["gateway"])
-        if len(gatewayIPList) != len(set(gatewayIPList)):
-            dup = True
-            break
-        else:
-            ans = ipValidator(gatewayIPList)
-            if "i1" in ans:
-                return "\t[E] Wrong IP Format (0x1c)"
+        if "subnets" in vpc.keys():
+            for subnet in vpc["subnets"]:
+                gatewayIPList.append(subnet["gateway"])
+            if len(gatewayIPList) != len(set(gatewayIPList)):
+                dup = True 
+                break
             else:
-                if (ipaddress.ip_address(subnet["dhcp"]["start"]) not in ipaddress.ip_network(ans.split("+")[1])) or (ipaddress.ip_address(subnet["dhcp"]["end"]) not in ipaddress.ip_network(ans.split("+")[1])):
-                    return "\t[E] IP Address not in range (0x1cc)"
-            gatewayIPList = []
+                ans = ipValidator(gatewayIPList)
+                if "i1" in ans:
+                    return "\t[E] Wrong IP Format (0x1c)"
+                gatewayIPList = []
     if dup:
         return "\t[E] Conflicting Gateway IPs in a VPC (0x1d)"
+    
     return "[OK] VPC IP Format valid (0x00)"
 
 def checkContainerNames(data):
     flag = False
     names = []
     for vpc in data["vpcs"]:
-        for vms in vpc["containers"]:
-            names.append(vms["name"])
-        if len(names) != len(set(names)):
-            flag = True
-            break
-        else:
-            names = []
+        if "containers" in vpc.keys():
+            for vms in vpc["containers"]:
+                names.append(vms["name"])
+            if len(names) != len(set(names)):
+                flag = True
+                break
+            else:
+                names = []
     if flag:
         return "\t[E] Conflicting Container Names (0x1e)"
     else:
@@ -162,14 +164,15 @@ def checkContainerIntNames(data):
     flag = False
     vmIntNames = []
     for vpc in data["vpcs"]:
-        for vms in vpc["containers"]:
-            for inter in vms["interfaces"]:
-                vmIntNames.append(inter["name"])
-            if len(vmIntNames) != len(set(vmIntNames)):
-                flag = True
-                break
-            else:
-                vmIntNames = []
+        if "containers" in vpc.keys():
+            for vms in vpc["containers"]:
+                for inter in vms["interfaces"]:
+                    vmIntNames.append(inter["name"])
+                if len(vmIntNames) != len(set(vmIntNames)):
+                    flag = True
+                    break
+                else:
+                    vmIntNames = []
     if flag:
         return "\t[E] Container Interface Names Conflict! (0x1f)"
     else:
@@ -179,14 +182,15 @@ def checkContainerSubnet(data):
     flag = False
     subnetNames = []
     for vpc in data["vpcs"]:
-        for subnets in vpc["subnets"]:
-            subnetNames.append(subnets["name"])
-        for vms in vpc["containers"]:
-            for subnet in vms["interfaces"]:
-                if subnet["subnet"] not in subnetNames:
-                    flag = True
-                    break
-        subnetNames = []
+        if "subnets" in vpc.keys():
+            for subnets in vpc["subnets"]:
+                subnetNames.append(subnets["name"])
+            for vms in vpc["containers"]:
+                for subnet in vms["interfaces"]:
+                    if subnet["subnet"] not in subnetNames:
+                        flag = True
+                        break
+            subnetNames = []
     if flag:
         return "\t[E] Container Network not present in VPC (0x20)"
     else:
@@ -195,18 +199,19 @@ def checkContainerSubnet(data):
 def checkContainerIntDorS(data):
     flag = ""
     for vpc in data["vpcs"]:
-        for vms in vpc["containers"]:
-            for inter in vms["interfaces"]:
-                if "dhcp" in inter.keys() and "ipaddr" in inter.keys():
-                    flag = "conflict"
-                    break
-                elif "ipaddr" in inter.keys():
-                    ip = inter["ipaddr"]
-                    try:
-                        ipaddress.ip_address(ip.split("/")[0])
-                    except ValueError:
-                        flag = "locha"
+        if "containers" in vpc.keys():
+            for vms in vpc["containers"]:
+                for inter in vms["interfaces"]:
+                    if "dhcp" in inter.keys() and "ipaddr" in inter.keys():
+                        flag = "conflict"
                         break
+                    elif "ipaddr" in inter.keys():
+                        ip = inter["ipaddr"]
+                        try:
+                            ipaddress.ip_address(ip.split("/")[0])
+                        except ValueError:
+                            flag = "locha"
+                            break
     
     if flag == "conflict":
         return "\t[E] Container interface conflict! Found both DHCP and Static! (0x21)"
@@ -255,7 +260,6 @@ def masterCheck(data):
         errorCodes.append(cS.split("+")[0])
         errorCodes.append(checkVPCSubnetMode(data))
         errorCodes.append(checkVPCSubnetGatewayIP(data))
-        #errorCodes.append(checkVPCTransitIP(data))
 
         errorCodes.append(checkContainerNames(data))
         errorCodes.append(checkContainerIntNames(data))
