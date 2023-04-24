@@ -11,7 +11,7 @@ from pprint import pprint as pp
 
 states = ['requested', 'processing', 'active', 'terminate']
 
-database = "test_connectivity.yaml"
+database = "test_master_db.yaml"
 # lock_path = f"{database}.lock"
 # lock = FileLock(lock_path, timeout=1)
 

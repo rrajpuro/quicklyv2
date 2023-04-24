@@ -8,8 +8,8 @@ tenants:
         name: Redone
         location: CA
         state: active
-        pip: 172.21.10.1/24
-        cip: 172.21.10.2/24
+        pip: 172.21.10.2/24
+        cip: 172.21.10.1/24
         tip: 10.0.1.1/24
         tipremote: 10.0.1.2/24
         cdn:
@@ -23,8 +23,8 @@ tenants:
         name: Redtwo
         location: CA
         state: active
-        pip: 172.21.20.1/24
-        cip: 172.21.20.2/24
+        pip: 172.21.20.2/24
+        cip: 172.21.20.1/24
         tip: 10.0.2.1/24
         tipremote: 10.0.2.2/24
         cdn:

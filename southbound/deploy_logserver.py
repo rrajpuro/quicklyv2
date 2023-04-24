@@ -44,10 +44,10 @@ def destroyContainer(conid):
 
 def configureContainer(logcon,tns):
 
-    vpcip = '10.0.100.1/24'
+    vpcip = '10.0.100.2/24'
     vpcint = f"v-log"
 
-    logip = '10.0.100.2/24'
+    logip = '10.0.100.1/24'
     logint = 'eth0'
 
     cmd = f'ip link add {logint} type veth peer name {vpcint}'

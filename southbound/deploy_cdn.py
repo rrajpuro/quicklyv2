@@ -78,8 +78,13 @@ def configureContainer(cdnname,vpckey,cdnip):
     
     return
 
-def configureiptables(vpc, orgport, cdnip, cdnport):
-    cdnip = cdnip.split('/')[0]
+def configureiptables(vpc, orgport, cdnipfull, cdnport):
+    cdnip = cdnipfull.split('/')[0]
+    cmd =  f'\
+        ip netns exec {vpc} \
+        iptables -t nat -A POSTROUTING -s {cdnipfull} ! -d {cdnipfull} -j MASQUERADE'
+    print(f'Executing: {cmd}')
+    subprocess.call(cmd, shell=True)
     cmd =  f'\
         ip netns exec {vpc} \
         iptables --table nat --new-chain QUICKLY'
@@ -98,9 +103,19 @@ def configureiptables(vpc, orgport, cdnip, cdnport):
     subprocess.call(cmd, shell=True)
     return
 
-def configureiptablesHA(vpc, orgport, cdnip1, cdnip2, cdnport):
-    cdnip1 = cdnip1.split('/')[0]
-    cdnip2 = cdnip2.split('/')[0]
+def configureiptablesHA(vpc, orgport, cdnip1f, cdnip2f, cdnport):
+    cdnip1 = cdnip1f.split('/')[0]
+    cdnip2 = cdnip2f.split('/')[0]
+    cmd =  f'\
+        ip netns exec {vpc} \
+        iptables -t nat -A POSTROUTING -s {cdnip1f} ! -d {cdnip1f} -j MASQUERADE'
+    print(f'Executing: {cmd}')
+    subprocess.call(cmd, shell=True)
+    cmd =  f'\
+        ip netns exec {vpc} \
+        iptables -t nat -A POSTROUTING -s {cdnip2f} ! -d {cdnip2f} -j MASQUERADE'
+    print(f'Executing: {cmd}')
+    subprocess.call(cmd, shell=True)
     cmd =  f'\
         ip netns exec {vpc} \
         iptables --table nat --new-chain QUICKLY'
@@ -126,8 +141,9 @@ def configureiptablesHA(vpc, orgport, cdnip1, cdnip2, cdnport):
 def main(cdn,vpckey,log):
     cdnport = '3040'
     logport = '3090'
-    logip = '10.0.100.2'
+    logip = '10.0.100.1'
     vars = {
+        'cdndomainname': cdn['cdndomainname'],
         'cdn_port': cdnport,
         'webapp_port': cdn['originport'],
         'webapp_IP': cdn['origin']
@@ -145,6 +161,8 @@ def main(cdn,vpckey,log):
 
     if cdn['ha'] == 'True':
         cdn2 = vpckey+'cdn2'
+        # Modyfying domain name for backup cache
+        vars['cdndomainname'] = 'bak.'+vars['cdndomainname']
         created = deployContainer(cdn2, image='nmadamshetti/cdn-node', env_vars=vars)
         if created:
             configureContainer(cdn2,vpckey,cdn['secondaryip'])
@@ -156,11 +174,11 @@ def main(cdn,vpckey,log):
 
 if __name__=="__main__":
     print('Running from if __name__ block')
-    cdn = {
-        'origin': '1.1.1.1',
-        'originport':'3060',
-        'ha': 'True',
-        'primaryip': '192.168.150.1/31',
-        'secondaryip': '192.168.150.3/31'
-    }
-    main(cdn, '007', 'True')
+    # cdn = {
+    #     'origin': '1.1.1.1',
+    #     'originport':'3060',
+    #     'ha': 'True',
+    #     'primaryip': '192.168.150.1/31',
+    #     'secondaryip': '192.168.150.3/31'
+    # }
+    # main(cdn, '007', 'True')
