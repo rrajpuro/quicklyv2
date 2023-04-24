@@ -137,6 +137,10 @@ def checkVPCSubnetGatewayIP(data):
                 ans = ipValidator(gatewayIPList)
                 if "i1" in ans:
                     return "\t[E] Wrong IP Format (0x1c)"
+                else:
+                    if "dhcp" in subnet.keys():
+                        if (ipaddress.ip_address(subnet["dhcp"]["start"]) not in ipaddress.ip_network(ans.split("+")[1])) or (ipaddress.ip_address(subnet["dhcp"]["end"]) not in ipaddress.ip_network(ans.split("+")[1])):
+                            return "\t[E] IP Address not in range (0x1cc)"
                 gatewayIPList = []
     if dup:
         return "\t[E] Conflicting Gateway IPs in a VPC (0x1d)"
