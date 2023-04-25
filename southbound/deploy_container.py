@@ -4,12 +4,12 @@ import os
 import pexpect
 import sys
 
-def deployContainer(conid):
+def deployContainer(conid, imagename):
     print(f'Container deploying: {conid}')
     client = docker.from_env()
     # create container with the name 'sc1', interactive mode and without network
     try:
-        container = client.containers.create('ubuntu', name=conid, tty=True, network_mode='none')
+        container = client.containers.create(imagename, name=conid, tty=True, network_mode='none')
     except docker.errors.APIError as e:
         if '409 Client Error' in str(e) and 'Conflict' in str(e):
             print(f'Container name "{conid}" is already in use.')
@@ -79,7 +79,7 @@ def configureContainer(conid, data):
     return
 
 def main(conid,data):
-    created = deployContainer(conid)
+    created = deployContainer(conid, data['image'])
     if created:
         configureContainer(conid, data)
     return

@@ -5,3 +5,4 @@ artifacts
 env
 *.pyc
 *_pycache_*
+*.pcap

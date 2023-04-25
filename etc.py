@@ -26,11 +26,28 @@ def convert_to_kv_pairs(d, prefix="/"):
             result.append((f"{prefix}{k}", v))
     return result
 
+# def controller():
+#     print('Hi! watch function triggered me')
+#     return
 
 e = etcd3.client()
 db = e.get_all()
 
-res = convert_to_dict(db)
+# res = convert_to_dict(db)
+
+etcd = etcd3.client(host='localhost', port=2379)
+# watcher = etcd.add_watch_prefix_callback('/', controller)
+
+
+# watch prefix
+watch_count = 0
+events_iterator, cancel = etcd.watch_prefix("/doot/")
+while True:
+    for event in events_iterator:
+        print(event)
+        watch_count += 1
+        if watch_count > 10:
+            cancel()
 
 # with open('sample_master_db.yaml', 'r') as f:
 #     data = yaml.safe_load(f)
