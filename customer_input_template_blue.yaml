@@ -6,7 +6,7 @@ vpcs:
   - name: 'Blueone'  # Provide name of your vpc
     location: 'CA'  # Provide the desired locations (as cities) of your edge where the CDN has to be implemented 
     cdn:
-      cdndomainname: 'blue.cdn.com'     # Other providers' inspired feature: Provide the CDN Server Name 
+      cdndomainname: 'blueone.cdn.com'     # Other providers' inspired feature: Provide the CDN Server Name 
       ha: 'True' # true/false. Provide input for high availibility
       primaryip:  '192.168.150.1/31'   # Provide internal VPC limited IP address of the CDN Server. Network part is used by VPC end of veth
       secondaryip: '192.168.150.3/31'  # Provide only if ha is required
