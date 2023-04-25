@@ -27,6 +27,23 @@ def convert_to_kv_pairs(d, prefix="/"):
             result.append((f"{prefix}{k}", v))
     return result
 
+def find_keys(dic, val, keys=[]):
+    """
+    Find all keys in a nested dictionary for a given value
+    """
+    for key, value in dic.items():
+        if value == val:
+            keys.append(key)
+            return keys
+        elif isinstance(value, dict):
+            keys.append(key)
+            nested_keys = find_keys(value, val, keys)
+            if nested_keys:
+                return nested_keys
+    if keys:
+        keys.pop()
+    return None
+
 def quicklyparser(filename):
     with open(filename, 'r') as f:
         data = yaml.safe_load(f)
@@ -104,6 +121,7 @@ def quicklyparser(filename):
                     interface_data = {
                         'name': interface['name'],
                         'subnet': interface['subnet'],
+                        'subid': find_keys(vpc_data['subnets'],interface['subnet'])[0],
                         'ipaddr': interface.get('ipaddr', ''),
                         'gateway': interface.get('gateway','')
                     }
