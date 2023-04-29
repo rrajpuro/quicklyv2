@@ -1,6 +1,6 @@
 # Tenant details
 apiVersion: '2'  #calls the appropriate northbound API  
-name:  'Blue'   # Provide the name of your org
+name:  'James'   # Provide the name of your org
 logging: 'True' # true/false. If true create a transit VPC and add the logging server
 vpcs: 
   - name: 'Blueone'  # Provide name of your vpc
@@ -21,7 +21,7 @@ vpcs:
         gateway: '192.168.131.1/24' # Provide gateway details
       - name: 'Network2'  # Provide the name of subnets required for each vpc
         mode: 'nat' # nat/route mode
-        gateway: '192.168.132.1/24' # Provide gateway details
+        gateway: '192.168.140.1/24' # Provide gateway details
     containers:
       - name: 'cn11' # Provide the name of the VM
         image: 'ubuntu' # Default Ubuntu Image
@@ -42,6 +42,6 @@ vpcs:
         interfaces:
           - name: 'eth0'  # interface name
             subnet: 'Network2' # must be same as subnet name that the VM must be connected to
-            ipaddr: '192.168.132.2/24'
-            gateway: '192.168.132.1' 
+            ipaddr: '192.168.140.2/24'
+            gateway: '192.168.140.1' 
 
